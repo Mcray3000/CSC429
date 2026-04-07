@@ -1,22 +1,22 @@
-\documentclass{article}
+\documentclass[letterpaper]{article}
 
-\usepackage{fancyhdr}
-\usepackage{extramarks}
-\usepackage{amsmath}
-\usepackage{amsthm}
-\usepackage{amsfonts}
-\usepackage{tikz}
-\usepackage[plain]{algorithm}
-\usepackage{algpseudocode}
-\usepackage{xcolor}
-\definecolor{polygreen}{HTML}{154734}
+% --- Required Packages ---
+\usepackage{parskip}            % Removes paragraph indentation, adds space between paragraphs
+\usepackage[unicode, draft=false]{hyperref} % Setup hyperref package, and colours for links
+\usepackage{titlesec}           % For custom section formatting
+\usepackage{fancyhdr}           % Required for custom headers and footers
+\usepackage{extramarks}         % Required for \lastxmark in the footer
+\usepackage{enumitem}           % For nice lists (bullet points)
 
-\usetikzlibrary{automata,positioning}
+% --- Lab Details Variables ---
+\newcommand{\labTitle}{Lab\ \#X}
+\newcommand{\labDueDate}{May 11th, 2026}
+\newcommand{\labClass}{CSC429}
+\newcommand{\labClassTime}{}
+\newcommand{\labClassInstructor}{Professor Fang}
+\newcommand{\labAuthorName}{\textbf{Helen Huy, McCay Rudick, Jess Alencaster}}
 
-%
-% Basic Document Settings
-%
-
+% --- Basic Document Settings ---
 \topmargin=-0.45in
 \evensidemargin=0in
 \oddsidemargin=0in
@@ -26,124 +26,76 @@
 
 \linespread{1.1}
 
+% --- Header and Footer Settings ---
 \pagestyle{fancy}
-\lhead{{\hmwkAuthorName}}
-\rhead{{\hmwkClass\ (\hmwkClassInstructor\ \hmwkClassTime): \hmwkTitle}}
+\lhead{\labAuthorName}
+\rhead{\labClass\ (\labClassInstructor\ \labClassTime): \labTitle}
 \lfoot{\lastxmark}
 \cfoot{\thepage}
-\renewcommand\headrulewidth{.4pt}
-\renewcommand{\headrule}{\color{polygreen}\hrule width\headwidth height\headrulewidth}
 
-\renewcommand\headrulewidth{.4pt}
+\renewcommand\headrulewidth{0.4pt}
 \renewcommand\footrulewidth{0.4pt}
 
 \setlength\parindent{0pt}
 
-%
-% Create Problem Sections
-%
-
-
-\newcommand{\enterProblemHeader}[1]{
-    \nobreak\extramarks{}{#1 continued on next page\ldots}\nobreak{}
-    \nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak{}
-}
-\newcommand{\exitProblemHeader}[1]{
-    \nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak{}
-    \nobreak\extramarks{}{}\nobreak{}
-}
-
-
-\setcounter{secnumdepth}{0}
-\newcounter{partCounter}
-
-\newenvironment{homeworkProblem}[1]{
-\def\problemTitle{#1}
-\section{#1}
-\setcounter{partCounter}{1}
-\enterProblemHeader{#1}
-}{
-\exitProblemHeader{\problemTitle}
-}
-
-%
-% Homework Details
-%   - Title
-%   - Due date
-%   - Class
-%   - Section/Time
-%   - Instructor
-%   - Author
-%
-
-\newcommand{\hmwkTitle}{Lab\ \#1}
-\newcommand{\hmwkDueDate}{April 9th, 2026}
-\newcommand{\hmwkClass}{CSC-429}
-\newcommand{\hmwkClassTime}{}
-\newcommand{\hmwkClassInstructor}{Professor Fang}
-\newcommand{\hmwkAuthorName}{\textbf{Helen Huy, McCay Rudick, Jess Alencaster}}
-
-%
-% Title Page
-%
-
-\title{
-    \vspace{2in}
-    \textmd{\textbf{\hmwkClass:\ \hmwkTitle}}\\
-    \normalsize\vspace{0.1in}\small{Due\ on\ \hmwkDueDate}\\
-    \vspace{0.1in}\large{\textit{\hmwkClassInstructor\ \hmwkClassTime}}
-    \vspace{3in}
-}
-
-\author{\hmwkAuthorName}
-\date{}
-
-\renewcommand{\part}[1]{\textbf{\large Part \Alph{partCounter}}\stepcounter{partCounter}\\}
-
-%
-% Various Helper Commands
-%
-
-% Useful for algorithms
-\newcommand{\alg}[1]{\textsc{\bfseries \footnotesize #1}}
-
-% For derivatives
-\newcommand{\deriv}[1]{\frac{\mathrm{d}}{\mathrm{d}x} (#1)}
-
-% For partial derivatives
-\newcommand{\pderiv}[2]{\frac{\partial}{\partial #1} (#2)}
-
-% Integral dx
-\newcommand{\dx}{\mathrm{d}x}
-
-% Alias for the Solution section header
-\newcommand{\solution}{\textbf{\large Solution}}
-
-% Probability commands: Expectation, Variance, Covariance, Bias
-\newcommand{\E}{\mathrm{E}}
-\newcommand{\Var}{\mathrm{Var}}
-\newcommand{\Cov}{\mathrm{Cov}}
-\newcommand{\Bias}{\mathrm{Bias}}
+% --- Custom Section Formatting  ---
+\titleformat{\section}{\Large\bfseries\raggedright}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{10pt}{5pt}
+\titleformat{\subsection}{\large\bfseries\raggedright}{}{0em}{}
+\titlespacing{\subsection}{0pt}{8pt}{3pt}
 
 \begin{document}
+\thispagestyle{empty}
 
-\maketitle
+% --- Title Block ---
 
-\pagebreak
+\vspace*{\fill}
+\begin{center}
+    {\Huge \scshape \labClass: \labTitle} \\ \vspace{10pt}
+    {\Large \labAuthorName} \\ \vspace{5pt}
+    {\large \labClassInstructor \ \labClassTime} \\ \vspace{5pt}
+    {\large Due Date: \labDueDate}
+\end{center} 
+\vspace*{\fill}
 
-\begin{homeworkProblem}{ML Algorithm for Classification}
-\end{homeworkProblem}
-\pagebreak
+\newpage
+
+% BEGIN LAB CONTENT
+
+\section{1. Section 1}
+
+\subsection*{OOooo a sub section: [Boo!]}
+\textbf{Link:} \href{https://example.com}{https://example.com} \\
+\textbf{Description:} Help!
+
+\subsection*{OOooo a another sub section: [Boo!!]}
+\textbf{Link:} \href{https://example.com}{https://example.com} \\
+\textbf{Description:} Help me!
 
 
-\begin{homeworkProblem}{ML Algorithm for Regression}
-\end{homeworkProblem}
-\pagebreak
+\section{1. Section 2}
 
-\begin{homeworkProblem}{ML Algorithm for Clustering}
-\end{homeworkProblem}
-\pagebreak
-   
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Some thing some thing} Item 1 
+    \item \textbf{Some thing some thing} Item 2
+    \item \textbf{Some thing some thing} Item 3
+\end{itemize}
 
+
+\section{1. Section 3}
+HELLO THIS IS MCCAY AND IM TYPING A paragraph
+
+I AM THE THREAT MODEL
+
+
+% --- References ---
+\newpage
+\section{References}
+
+% We can do apa or smth later
+
+\begin{enumerate}[leftmargin=2em]
+    \item Author Last Name, First Initial. (Year). \textit{Title of the article or resource}. Website Name. \href{https://example.com}{https://example.com}
+\end{enumerate}
 
 \end{document}

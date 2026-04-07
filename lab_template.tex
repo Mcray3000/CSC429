@@ -52,26 +52,14 @@
 
 \setcounter{secnumdepth}{0}
 \newcounter{partCounter}
-\newcounter{homeworkProblemCounter}
-\setcounter{homeworkProblemCounter}{1}
 
-%
-% Homework Problem Environment
-%
-% This environment takes an optional argument. When given, it will adjust the
-% problem counter. This is useful for when the problems given for your
-% assignment aren't sequential. See the last 3 problems of this template for an
-% example.
-%
-\newenvironment{homeworkProblem}[1][-1]{
-    \ifnum#1>0
-        \setcounter{homeworkProblemCounter}{#1}
-    \fi
-    \section{Problem \arabic{homeworkProblemCounter}}
-    \setcounter{partCounter}{1}
-    \enterProblemHeader{homeworkProblemCounter}
+\newenvironment{homeworkProblem}[1]{
+\def\problemTitle{#1}
+\section{#1}
+\setcounter{partCounter}{1}
+\enterProblemHeader{#1}
 }{
-    \exitProblemHeader{homeworkProblemCounter}
+\exitProblemHeader{\problemTitle}
 }
 
 %

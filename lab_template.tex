@@ -8,6 +8,8 @@
 \usepackage{tikz}
 \usepackage[plain]{algorithm}
 \usepackage{algpseudocode}
+\usepackage{xcolor}
+\definecolor{polygreen}{HTML}{154734}
 
 \usetikzlibrary{automata,positioning}
 
@@ -25,12 +27,14 @@
 \linespread{1.1}
 
 \pagestyle{fancy}
-\lhead{\hmwkAuthorName}
-\rhead{\hmwkClass\ (\hmwkClassInstructor\ \hmwkClassTime): \hmwkTitle}
+\lhead{{\hmwkAuthorName}}
+\rhead{{\hmwkClass\ (\hmwkClassInstructor\ \hmwkClassTime): \hmwkTitle}}
 \lfoot{\lastxmark}
 \cfoot{\thepage}
+\renewcommand\headrulewidth{.4pt}
+\renewcommand{\headrule}{\color{polygreen}\hrule width\headwidth height\headrulewidth}
 
-\renewcommand\headrulewidth{0.4pt}
+\renewcommand\headrulewidth{.4pt}
 \renewcommand\footrulewidth{0.4pt}
 
 \setlength\parindent{0pt}

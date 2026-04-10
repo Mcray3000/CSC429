@@ -103,12 +103,11 @@ Federated Learning (FL) allows IoT devices to collaboratively train machine lear
 
 \textbf{Application 2: Privacy-preserving intrusion detection in IoT.} 
 
-For industrial IoT environments, it is important to have robust Intrusion Detection Systems. However, oftentimes industrial network traffic is sensitive, and transferring it to a central server risks exposing proprietary operational data.  Machine Learning is useful here because models, such as a 1D CNN, can be deployed to monitor and classify malicious traffic (like a DoS) locally.
+For industrial IoT environments, it is important to have robust Intrusion Detection Systems (IDS). However, oftentimes industrial network traffic is sensitive, and transferring it to a central server risks exposing proprietary operational data. Machine Learning is useful here because models, such as a 1D CNN, can be deployed to monitor and classify malicious traffic (like a DoS) locally. This is where FL becomes particularly valuable. Instead of sending raw industrial network traffic to a central server, each device trains the IDS model locally and shares model updates with the aggregator. However, as we have seen in our papers, even these model updates can leak sensitive information, say, through membership inference attacks. That is why in many of these privacy application-based research papers, people utilize DP on top of FL in order to calibrate noise into the model weights before they are uploaded. Thus, all updates the server receives are “differentially indistinguishable” from one another as a mathematical privacy guarantee. We saw in one of the papers (in Ruzafa-Alcazar et al. (2023)) apply both Gaussian and Laplacian noise mechanisms to these model weights. So, in an FL-enabled IDS context for Industrial IoT, research papers often indicate that privacy protection can be maintained without significantly degrading attack detection accuracy.
 
-\textbf{Application 3:} 
+\textbf{Application 3: Privacy-preserving federated learning in healthcare.} 
 
-Describe the application briefly and explain why ML is useful for it.
-
+DP is undeniably and critically researched here, due to strict regulations like HIPPA and GDPR. Teo et al. (2024) finds that DP in FL models in healthcare are still susceptible to membership inference attacks and reconstruction attacks. In these types of attacks, an adversary can infer whether a specific patient’s data was used in training, or even reconstruct back the original patient record entirely. So, naturally, DP and FL models in clinical settings are one of the hardest environments/contexts to apply DP, because the cost of getting the wrong privacy-utility tradeoff is measured in patient outcomes rather than just “performance.”
 
 
 % --- References ---

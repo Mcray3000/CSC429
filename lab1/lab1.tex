@@ -7,7 +7,7 @@
 \usepackage{fancyhdr}           % Required for custom headers and footers
 \usepackage{extramarks}         % Required for \lastxmark in the footer
 \usepackage{enumitem}           % For nice lists (bullet points)
-
+\RequirePackage{graphicx}
 % --- Lab Details Variables ---
 \newcommand{\labTitle}{Lab\ \#1}
 \newcommand{\labDueDate}{April 9th, 2026}
@@ -64,29 +64,36 @@
 
 \section{1. Open-Source Data Resources}
 
-\subsection*{Resource 1: [Dataset Name]}
-\textbf{Link:} \href{https://example.com}{https://example.com} \\
-\textbf{Description:} Briefly describe the dataset here.
+\subsection*{Resource 1: MNIST}
+\textbf{Link:} \href{https://www.kaggle.com/datasets/hojjatk/mnist-dataset}{https://www.kaggle.com/datasets/hojjatk/mnist-dataset} \\
+\textbf{Description:} The MNIST dataset contains 70,000 handwriting digit samples. Frequently used to evaluate Federated Learning models for image classification. 
 
-\subsection*{Resource 2: [Dataset Name]}
-\textbf{Link:} \href{https://example.com}{https://example.com} \\
-\textbf{Description:} Briefly describe the second dataset here.
+\subsection*{Resource 2: CIFAR-10}
+\textbf{Link:} \href{https://www.cs.toronto.edu/~kriz/cifar.html}{https://www.cs.toronto.edu/~kriz/cifar.html} \\
+\textbf{Description:} The CIFAR-10 dataset contains 60,000 image samples with 10 classes. Often used to evaluate Convolutional Neural Networks.
 
 
 \section{2. Open-Source ML Algorithms}
 
-\subsection*{Classification: [Algorithm Name]}
-\textbf{Link:} \href{https://example.com}{https://example.com} \\
-\textbf{Description:} Briefly describe the algorithm and the platform you chose to use.
+\subsection*{Classification: Convolutional Neural Network (CNN)}
+\textbf{Link:} \href{https://www.tensorflow.org/guide/keras/sequential_model}{Keras Sequential Model} \\
+\textbf{Description:} A Convolutional Neural Network (CNN) is a deep learning algorithm that takes input features and passes them through convolutional and pooling operations to detect patterns. Very commonly used for image classification. 
 
-\subsection*{Regression: [Algorithm Name]}
-\textbf{Link:} \href{https://example.com}{https://example.com} \\
-\textbf{Description:} Briefly describe the algorithm and the platform.
+\subsection*{Regression: Linear Regression}
+\textbf{Link:} \href{https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html}{Scikit-Learn Linear Regression} \\
+\textbf{Description:} Linear regression is a foundational ML algorithm used to model outcomes based on one or more independent variables using basically a line. Linear regression algorithms are extremely inexpensive and often able to be trained locally for Federated Learning applications. 
 
-\subsection*{Clustering: [Algorithm Name]}
-\textbf{Link:} \href{https://example.com}{https://example.com} \\
-\textbf{Description:} Briefly describe the algorithm and the platform.
+\subsection*{Clustering: K Means Clustering}
+\textbf{Link:} \href{https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html}{Scikit-Learn K-Means} \\
+\textbf{Description:} BriK-Means is an unsupervised ML algorithm that partitions unlabelled data into clusters based on feature similarity. Scikit-Learn has an open-source library that is very handy for clustering tasks.
 
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.4\textwidth]{k-means.png}
+    \caption{K Means Clustering Example 3d representation}
+\end{figure}
+
+\pagebreak
 
 \section{3. Security and Privacy Applications}
 

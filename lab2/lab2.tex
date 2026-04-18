@@ -1,0 +1,146 @@
+\documentclass[letterpaper]{article}
+
+% --- Required Packages ---
+\usepackage{parskip}            % Removes paragraph indentation, adds space between paragraphs
+\usepackage[unicode, draft=false]{hyperref} % Setup hyperref package, and colours for links
+\usepackage{titlesec}           % For custom section formatting
+\usepackage{fancyhdr}           % Required for custom headers and footers
+\usepackage{extramarks}         % Required for \lastxmark in the footer
+\usepackage{enumitem}           % For nice lists (bullet points)
+\usepackage[backend=biber, style=numeric]{biblatex}
+\addbibresource{references.bib}
+\RequirePackage{graphicx}
+% --- Lab Details Variables ---
+\newcommand{\labTitle}{ML for Security and Privacy }
+\newcommand{\labDueDate}{April 17th, 2026}
+\newcommand{\labClass}{CSC429}
+\newcommand{\labClassTime}{}
+\newcommand{\labClassInstructor}{Professor Fang}
+\newcommand{\labAuthorName}{\textbf{Helen Huy, McCay Rudick, Jess Alencaster}}
+
+% --- Basic Document Settings ---
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.1}
+
+% --- Header and Footer Settings ---
+\pagestyle{fancy}
+\lhead{\labAuthorName}
+\rhead{\labClass\ : \labTitle}
+\lfoot{\lastxmark}
+\cfoot{\thepage}
+
+\renewcommand\headrulewidth{0.4pt}
+\renewcommand\footrulewidth{0.4pt}
+
+\setlength\parindent{0pt}
+
+% --- Custom Section Formatting  ---
+\titleformat{\section}{\Large\bfseries\raggedright}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{10pt}{5pt}
+\titleformat{\subsection}{\large\bfseries\raggedright}{}{0em}{}
+\titlespacing{\subsection}{0pt}{8pt}{3pt}
+
+\begin{document}
+\thispagestyle{empty}
+
+% --- Title Block ---
+
+\vspace*{\fill}
+\begin{center}
+    {\Huge \scshape \labTitle} \\ \vspace{10pt}
+    {\Large \labAuthorName} \\ \vspace{5pt}
+    {\large \labClassInstructor \ \labClassTime} \\ \vspace{5pt}
+    {\large Due Date: \labDueDate}
+\end{center} 
+\vspace*{\fill}
+
+\newpage
+% BEGIN LAB CONTENT
+
+\section{1. Open-Source Data Resources for Security Applications}
+
+\subsection*{Resource 1: CICIDS 2017 Dataset} 
+\textbf{Description:} The CICIDS 2017 intrusion detection dataset is a benchmark resource specifically designed to evaluate modern Network Intrusion Detection Systems (NIDS). \\
+\textbf{Link:} \href{https://www.unb.ca/cic/datasets/ids-2017.html}{CICIDS 2017 Dataset}
+\begin{itemize}
+    \item \textbf{Features and Format:} It contains five days of network traffic across 15 distinct classes. It is released as raw packet traces (PCAP files) and pre-extracted feature sets (CSV files), linking network flows to labels using timestamps and 5-tuples.
+    \item \textbf{Advantages and Disadvantages:} A major advantage is its realistic portrayal of benign traffic intertwined with modern attacks, and its CSV format is directly compatible with ML classifiers. A disadvantage is that processing the raw PCAP files requires massive computational storage.
+    \item \textbf{Security Uses:} It is highly useful for multi-class anomaly detection tasks where models learn to distinguish malicious cyber-attacks from benign network behavior.
+\end{itemize}
+
+\subsection*{Resource 2: UNSW-NB15 Dataset}
+\textbf{Description:} Created by the Australian Centre for Cyber Security, the UNSW-NB15 dataset is a foundational open-source resource for training and benchmarking modern anomaly-based detection models. \\
+\textbf{Link:} \href{https://research.unsw.edu.au/projects/unsw-nb15-dataset}{UNSW-NB15 Dataset}
+\begin{itemize}
+    \item \textbf{Features and Categories:} It contains a hybrid of real normal activities and synthetic contemporary attack behaviors spanning 9 distinct attack categories and providing 49 distinct network features.
+    \item \textbf{Advantages over Legacy Data:} Its primary advantage is capturing modern, low-footprint attacks, making it vastly superior to legacy datasets like KDD '99 which are over a decade old and fail to reflect current threat landscapes.
+    \item \textbf{Security Uses:} It is widely utilized to benchmark machine learning algorithms on their ability to identify both known vulnerabilities and stealthy network intrusions.
+\end{itemize}
+
+\pagebreak
+\section{2. Open-Source Machine Learning Algorithms}
+
+\subsection*{Algorithm 1: 1D Convolutional Neural Network (1D CNN)}
+\textbf{Link:} \href{https://www.tensorflow.org/api_docs/python/tf/keras/Sequential}{TensorFlow Keras Sequential} \\
+\textbf{Description:} A deep learning algorithm structured through Keras to process sequential feature data, utilized for complex security tasks such as classifying malicious IoT network traffic. \\
+\textbf{Advantages, Disadvantages, and Costs:} CNNs are highly capable of recognizing complex patterns to categorize specific attack types. However, they require substantial computational power and data memory, making localized edge-training a resource challenge without proper optimization frameworks. \\
+\textbf{Application in Literature:} Torre et al. (2025) utilized a 1D CNN with an eight-layer architecture to classify IoT traffic locally \cite{torre2025}. They chose this algorithm because its deep feature extraction capabilities are ideal for distinguishing nuanced malicious traffic across multiple attack categories in highly imbalanced datasets.
+\vspace{1em}
+
+\subsection*{Algorithm 2: Random Forest}
+\textbf{Link:} \href{https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html}{Scikit-Learn Random Forest Classifier} \\
+\textbf{Description:} An ensemble learning method leveraging multiple decision trees to classify network traffic as benign or a specific attack type. \\
+\textbf{Advantages, Disadvantages, and Costs:} Random Forests use parameter values to control the complexity and size of trees, which improves predictive accuracy and mitigates over-fitting. A notable disadvantage is high memory consumption, requiring careful parameter configuration to prevent resource exhaustion. \\
+\textbf{Application in Literature:} More et al. (2024) applied a Random Forest classifier to datasets like UNSW-NB15 to monitor network traffic \cite{more2024}. They chose this algorithm because it provides interpretable, high-accuracy multi-class categorization across large network feature sets while allowing developers to cap tree depth to manage computational costs.
+\vspace{1em}
+
+\pagebreak
+
+\section{3. Performance Evaluations}
+
+\subsection*{Evaluating the Random Forest Model}
+In the paper by More et al. (2024), the Random Forest algorithm was evaluated using accuracy, precision, recall, F1-score, and AUC-ROC \cite{more2024}. 
+\begin{itemize}
+    \item \textbf{Precision, Recall, and F1-Score:} Precision measures how many predicted attacks were real, while recall measures how many real attacks were successfully caught. The F1-score balances both, which is critical in NIDS because both missing an attack and flagging normal traffic as an attack are highly costly.
+    \item \textbf{AUC-ROC:} ROC/AUC provides a threshold-independent view of true model performance. In a NIDS, there is a constant tradeoff: lowering the detection threshold catches more attacks but generates more false positives, while raising it misses real attacks. AUC-ROC handles this class imbalance better than raw accuracy.
+    \item \textbf{Results:} The Random Forest achieved a remarkable F1 score of 97.80\%, an accuracy of 98.63\%, and a low false alarm rate of 1.36\% \cite{more2024}.
+\end{itemize}
+
+\subsection*{Evaluating the 1D CNN Model with Differential Privacy}
+In the paper by Torre et al. (2025), the 1D CNN was evaluated using multi-class, threshold-independent metrics \cite{torre2025}. Because network intrusion data is often highly imbalanced, overall accuracy is an insufficient metric on its own.
+\begin{itemize}
+    \item \textbf{Detection Utility:} The model achieved 97.31\% accuracy, 95.59\% precision, 92.43\% recall, and a 92.69\% F1-score, proving that utility was maintained even when privacy noise was added.
+    \item \textbf{Privacy Evaluation (MIA):} Privacy was visually evaluated by charting aggregate mean Membership Inference Attack (MIA) performance against different differential privacy budgets ($\epsilon$). The evaluation proved that smaller $\epsilon$ values (denoting more added DP noise) successfully protected the model updates from adversaries without entirely degrading the CNN's predictive accuracy.
+\end{itemize}
+
+\pagebreak
+
+\section{4. Alignment with NIST Framework}
+
+\subsection*{Detection: Random Forest on UNSW-NB15}
+The application by More et al. (2024) falls under the \textbf{DETECT} function of the NIST framework \cite{nist_csf_2_0}. 
+\begin{itemize}
+    \item \textbf{Rationale:} The DETECT function enables the timely discovery and analysis of anomalies and indicators of compromise. The Random Forest model is trained to continuously monitor and classify network traffic, identifying attack patterns in real time. It does not actively block or prevent the attacks; rather, it identifies them as they appear in the network traffic so that human operators or automated response systems can take action.
+\end{itemize}
+
+\subsection*{Detection and Prevention: 1D CNN with FL and DP}
+The application by Torre et al. (2025) can be categorized into both the \textbf{DETECT} and \textbf{PROTECT (Prevention)} functions \cite{nist_csf_2_0}.
+\begin{itemize}
+    \item \textbf{Detection (DETECT):} Similar to the Random Forest, the 1D CNN classifies malicious IoT network traffic into specific attack categories, successfully identifying anomalies.
+    \item \textbf{Prevention (PROTECT):} This application uniquely falls under PROTECT because the integration of Federated Learning (FL) and Differential Privacy (DP) actively addresses data and platform security. By implementing mathematical protections (Laplace noise) to obscure individual model updates, it proactively prevents adversaries from executing data-leakage and membership inference attacks against the model itself.
+\end{itemize}
+
+% \nocite{*}
+% --- References ---
+\newpage
+\section{}
+
+\printbibliography[title={References}]
+
+\end{document}

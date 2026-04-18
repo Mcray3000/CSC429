@@ -212,3 +212,7 @@ __marimo__/
 *.aux
 *.fdb_latexmk
 *.gz
+*.xml
+*.bbl
+*.bcf
+*.blg

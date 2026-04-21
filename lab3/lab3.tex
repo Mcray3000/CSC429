@@ -318,7 +318,7 @@ We then consider the honest-but-curious aggregator threat scenario. We adopt the
 IoT devices &
 Security Gateway &
 Full &
-IoT devices connect to their local gateway by design with no adversarial competition. \\
+IoT devices connect to their local gateway by design with no adversarial assumption. \\
 \hline
 
 Security Gateway &
@@ -359,15 +359,13 @@ Participants cannot observe each other’s updates. Only the aggregated global m
 
     \item \textbf{Adversary Knowledge:} The adversary operates within a white-box setting. Therefore, it has full access to the 1D CNN architecture, model parameters, and the per-layer gradient vectors $g=\nabla_{W}\mathcal{L}(f(x;W),y)$, computed from the uploaded local updates. Importantly, this gradient access is the key enabler of MIA, as later CNN layers retain some distinguishable gradient ``footprints'' for training membership versus non-members \cite{nasr2019}.
 
-    \item \textbf{Attack Vector:} The attack vector is the gradient upload channel. Specifically, this consists of the local model updates $W_{ik}^t$ uploaded by each Security Gateway to the Aggregator during the training phase. As we illustrate in Figure 1, SGD forces $||g||$ toward zero for training members. This creates a statistically distinguishable signal that the adversary can exploit via some pre-trained attack model, say $h(g, f(x), y)$.
+    \item \textbf{Attack Vector:} The attack vector is the gradient upload channel. Specifically, this consists of the local model updates $W_{ik}^t$ uploaded by each Security Gateway to the Aggregator during the training phase. As we illustrate in Figure 2, SGD forces $||g||$ toward zero for training members. This creates a statistically distinguishable signal that the adversary can exploit via some pre-trained attack model, say $h(g, f(x), y)$.
 
     \item \textbf{Assumptions:} We assume all Security Gateways are honest. Further, we assume the adversary controls no Security Gateways and does not modify the aggregation protocol. The adversary's advantage here comes solely from passive observation of gradient uploads over multiple training rounds.
 \end{itemize}
 
 % --- References ---
 \newpage
-\section{}
-
 \printbibliography[title={References}]
 
 \end{document}

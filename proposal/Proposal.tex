@@ -1,0 +1,189 @@
+\documentclass[letterpaper]{article}
+
+% --- Required Packages ---
+\usepackage{parskip}            % Removes paragraph indentation, adds space between paragraphs
+\usepackage[unicode, draft=false]{hyperref} % Setup hyperref package, and colours for links
+\usepackage{titlesec}           % For custom section formatting
+\usepackage{fancyhdr}           % Required for custom headers and footers
+\usepackage{extramarks}         % Required for \lastxmark in the footer
+\usepackage{enumitem}           % For nice lists (bullet points)
+\usepackage[backend=biber, style=numeric]{biblatex}
+\usepackage{amsmath}
+\usepackage{tabularx}           
+\usepackage[table]{xcolor}
+\addbibresource{references.bib}
+
+% --- Document Details Variables ---
+\newcommand{\proposalTitle}{JHM-McDP: Layer-wise Differential Privacy for Federated IoT Intrusion Detection}
+\newcommand{\docType}{Project Proposal}
+\newcommand{\classInfo}{CSC429 Professor Fang}
+\newcommand{\authorNames}{\textbf{Jess Alencaster, McCay Rudick, Helen Huy}}
+
+% --- Basic Document Settings ---
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.1}
+
+% --- Header and Footer Settings ---
+\pagestyle{fancy}
+\lhead{\authorNames}
+\rhead{CSC429 : \docType}
+\lfoot{}
+\cfoot{\thepage}
+
+\renewcommand\headrulewidth{0.4pt}
+\renewcommand\footrulewidth{0.4pt}
+
+\setlength\parindent{0pt}
+
+% --- Custom Section Formatting  ---
+\titleformat{\section}{\Large\bfseries\raggedright}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{10pt}{5pt}
+\titleformat{\subsection}{\large\bfseries\raggedright}{}{0em}{}
+\titlespacing{\subsection}{0pt}{8pt}{3pt}
+
+\begin{document}
+
+% --- Fancy First-Page Header ---
+\begin{center}
+    {\LARGE \textbf{\proposalTitle}} \\ \vspace{10pt}
+    {\Large \textbf{\docType}} \\ \vspace{5pt}
+    {\large \authorNames} \\ \vspace{5pt}
+    {\large \classInfo}
+\end{center} 
+\vspace{1em}
+\hrule
+\vspace{1.5em}
+
+% BEGIN PROPOSAL CONTENT
+
+\section{Background}
+Internet of Things (IoT) devices are increasingly deployed across industrial, consumer, and especially healthcare settings, where Internet of Healthcare Things (IoHT) devices, such as wearable monitors, smart infusion pumps, and connected diagnostic systems continuously generate and transmit sensitive network traffic data. Because these devices often operate in safety-critical environments while maintaining limited onboard security, they present an attractive target for a wide range of cyberattacks. Intrusion Detection Systems (IDS), therefore, play an important role in monitoring IoT and IoHT traffic to identify malicious behavior before it disrupts device operation or compromises patient data. In this setting, the intersection of both machine learning (ML) and deep learning (DL) based IDS have shown promise, given their ability to learn complex patterns from large volumes of network traffic data and distinguish benign activity from attacks more effectively than many rule-based approaches.
+
+Traditional centralized IDS approaches send raw data to a central server, which raises serious privacy concerns for sensitive IoT environments. Federated Learning (FL) addresses this by allowing IoT devices to train local models on their own data and share only model updates with a central aggregation server, combining them into a global IDS model without ever accessing raw device data.
+
+However, FL's privacy guarantee is incomplete. Model updates encode private data information relative to where they were computed from, leaving such FL systems vulnerable to membership inference attacks (MIAs) and data poisoning attacks. MIAs can achieve up to 92.1\% attack accuracy against FL models under white-box conditions, where malicious aggregators manipulate gradient updates to expose participants' private data \cite{nasr2019}. Data poisoning poses an additional vector threat, where malicious clients inject corrupted local updates into the federation, which cause the global model to silently misclassify the malicious traffic as benign \cite{nguyen2020}.
+
+Differential Privacy (DP) has been proposed to address these vulnerabilities by injecting calibrated random noise into model updates before transmission. Formally, a mechanism $\mathcal{M}$ satisfies $(\epsilon, \delta)$-DP if for any two neighboring datasets $D$ and $D'$ differing by one sample:
+\begin{equation}
+Pr[\mathcal{M}(D) \in S] \le e^{\epsilon} \cdot Pr[\mathcal{M}(D') \in S] + \delta
+\end{equation}
+where $\epsilon$ controls the privacy-utility tradeoff. A lower $\epsilon$ means stronger privacy but more noise, which can degrade model accuracy.
+
+\pagebreak
+
+\section{Current Work}
+Current work in privacy-preserving FL-based IDS has explored DP primarily as a uniform noise mechanism. SECIOHT-FL \cite{mosaiyebzadeh2025} is a privacy-preserving FL framework for IoHT devices employing deep neural networks (DNNs) and convolutional neural networks (CNNs), applying uniform DP via Opacus with fixed clipping normal and noise multipliers across all layers during local training, with an open-source implementation that provides an accessible baseline for reproduction and experimentation. 
+
+Similarly, an FL IDS using a 1D CNN protected with DP alongside Diffie-Hellman key exchange and homomorphic encryption likewise applies uniform noise across the entire CNN architecture and lacks open-source availability \cite{torre2025}.
+
+Despite their contributions, both approaches share a fundamental limitation. White-box privacy analysis has demonstrated that later CNN layers are significantly more vulnerable to MIAs than earlier layers, as they memorize specific training patterns rather than generalized features \cite{nasr2019}. Compounding this, uniform DP has been shown to fail against data poisoning and backdoor attacks in FL-based IoT IDS unless noise is increased to a level that severely degrades model accuracy \cite{nguyen2020}.
+
+Recent work has introduced layer-wise adaptive noise injection for FL systems \cite{li2026ladpfl}. This approach demonstrates that allocating noise non-uniformly across layers based on per-layer privacy estimation reduces unnecessary noise injection by over 46\% while improving global model utility. However, this approach quantifies per-layer privacy risk through KL divergence between local and global model distributions, a signal oriented primarily toward preventing image reconstruction attacks in general FL settings. This leaves a gap for specialized defenses against network-level IoT threats, namely MIAs and targeted data poisoning, where per-layer MIA vulnerability is a more directly relevant risk signal than distributional divergence from the global model.
+
+\pagebreak
+
+\section{Motivation}
+Uniform DP does not account for heterogeneous per-layer privacy risk, which can lead to imposing unnecessary accuracy loss on lower-risk early layers while leaving higher-risk layers more vulnerable to membership inference leakage \cite{nasr2019}. This limitation motivates us to investigate whether a layer-specific privacy mechanism, informed by per-layer MIA vulnerability, can achieve a better privacy-utility tradeoff than uniform DP in FL-based IoT IDS. Building directly on the open-source SECIOHT-FL \cite{mosaiyebzadeh2025}, we further examine whether this non-uniform privacy allocation affects robustness under data poisoning attacks. This suggests that the limitation of uniform DP is not only the amount of noise injected, but also the inability to target protection where it is most needed within the model.
+
+\section{Contribution}
+This project proposes JHM-McDP, a layer-specific DP mechanism for FL-based IoT IDS that allocates the privacy budget $\epsilon$ non-uniformly across CNN layers according to each layer's measured MIA vulnerability. Building on top of the open-source SECIOHT-FL \cite{mosaiyebzadeh2025} framework as a reproducible baseline, the contributions of this project are as follows:
+
+\begin{itemize}
+    \item We design and implement JHM-McDP, a layer-wise $\epsilon$ allocation strategy for FL-based IoT IDS. Motivated by Nasr et al. \cite{nasr2019} and validated empirically in our setting, JHM-McDP assigns layer-specific gradient clipping thresholds informed by per-layer MIA vulnerability, with a custom Gaussian noise scaling implementation per layer.
+    \item We evaluate the privacy-utility tradeoff of JHM-McDP against the uniform DP baseline of SECIOHT-FL \cite{mosaiyebzadeh2025} on the WUSTL-EHMS-2020 and ECU-IoHT datasets, measuring intrusion detection accuracy, precision, recall, F1-score, and privacy budget $\epsilon$ across varying noise levels.
+    \item We assess JHM-McDP's robustness against MIAs and data poisoning attacks, evaluating whether layer-specific noise allocation maintains or improves defensive performance compared to uniform DP on IoHT network traffic data.
+    \item We quantify the privacy gain achieved by JHM-McDP relative to its accuracy cost, providing a concrete characterization of the privacy-utility tradeoff under adaptive versus uniform DP in FL-based IoT IDS.
+\end{itemize}
+
+\pagebreak
+
+\section{Timeline}
+
+\vspace{0.5em}
+\renewcommand{\arraystretch}{1.4}
+\noindent
+\begin{tabularx}{\textwidth}{|
+    >{\raggedright\arraybackslash}p{0.20\textwidth}|
+    >{\raggedright\arraybackslash}p{0.25\textwidth}|
+    >{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{black}
+\textcolor{white}{\textbf{Date Range}} &
+\textcolor{white}{\textbf{Phase}} &
+\textcolor{white}{\textbf{Key Objectives \& Tasks}} \\
+\hline
+
+\textbf{Apr 27 -- May 3} \newline \textit{(McCay's B-Day)} & 
+Project Initiation, Literature Review, \& Baseline Setup & 
+\vspace{-1em}
+\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=1pt]
+    \item Finalize project proposal.
+    \item Clone and configure the baseline repository.
+    \item Analyze baseline code: Understand the architecture and how DP is implemented using the PyTorch Opacus engine.
+    \item Review the data preprocessing pipeline for target datasets.
+\end{itemize} \vspace{-1em} \\
+\hline
+
+\textbf{May 4 -- May 10} & 
+Baseline Evaluation \& Threat Simulation & 
+\vspace{-1em}
+\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=1pt]
+    \item \textbf{Run baseline:} Execute the unmodified SECIOHT-FL model using uniform noise and fixed clipping.
+    \item \textbf{MIA Simulation:} Subject the baseline to white-box MIA to demonstrate later layers leak more information.
+    \item \textbf{Poisoning Simulation:} Demonstrate that uniform DP fails to filter malicious backdoor traffic.
+    \item Document baseline metrics: Accuracy, F1-score, and privacy budget ($\epsilon$).
+\end{itemize} \vspace{-1em} \\
+\hline
+
+\textbf{May 11 -- May 17} & 
+Algorithm Design \& Formulation & 
+\vspace{-1em}
+\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=1pt]
+    \item Develop the McDP model to calculate a layer-specific risk profile.
+    \item Model MIA leakage and poisoning vulnerability computationally.
+    \item Formulate the mathematical computation for layer-specific $\epsilon$ values.
+\end{itemize} \vspace{-1em} \\
+\hline
+
+\textbf{May 18 -- May 24} & 
+System Integration \& Implementation & 
+\vspace{-1em}
+\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=1pt]
+    \item Alter the SECIOHT-FL codebase to accept layer-specific clipping boundaries and Gaussian noise multipliers.
+    \item Integrate McDP into the training loop for dynamic noise allocation prior to gradient upload.
+    \item Debug to ensure federated aggregation remains unbroken on the server side.
+\end{itemize} \vspace{-1em} \\
+\hline
+
+\textbf{May 25 -- May 30} & 
+Testing, Evaluation, \& Comparison & 
+\vspace{-1em}
+\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=1pt]
+    \item Run the full McDP FL system on datasets over 100 epochs.
+    \item Attack McDP using the same MIA and Poisoning techniques applied to the baseline.
+    \item Evaluate and compare performance/privacy tradeoffs.
+\end{itemize} \vspace{-1em} \\
+\hline
+
+\textbf{May 31 -- Jun 2} & 
+Final Deliverables & 
+\vspace{-1em}
+\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=1pt]
+    \item Generate visuals (graphs, charts) for data presentation.
+    \item Finalize draft and project conclusions.
+    \item Prepare slide deck for the final report presentation.
+\end{itemize} \vspace{-1em} \\
+\hline
+\end{tabularx}
+
+% --- References ---
+\newpage
+\printbibliography[title={References}]
+
+\end{document}

@@ -2,19 +2,20 @@
 
 % --- Required Packages ---
 \usepackage{parskip}            % Removes paragraph indentation, adds space between paragraphs
-\usepackage[unicode, draft=false]{hyperref} % Setup hyperref package, and colours for links
+\usepackage[unicode, draft=false]{hyperref}
 \usepackage{titlesec}           % For custom section formatting
 \usepackage{fancyhdr}           % Required for custom headers and footers
 \usepackage{extramarks}         % Required for \lastxmark in the footer
-\usepackage{enumitem}           % For nice lists (bullet points)
+\usepackage{enumitem}           % For nice lists
 \usepackage[backend=biber, style=numeric]{biblatex}
 \usepackage{amsmath}
-\usepackage{tabularx}           
+\usepackage{tabularx}
 \usepackage[table]{xcolor}
+\usepackage{longtable}
 \addbibresource{references.bib}
 
 % --- Document Details Variables ---
-\newcommand{\proposalTitle}{JHM-McDP: Layer-wise Differential Privacy for Federated IoT Intrusion Detection}
+\newcommand{\proposalTitle}{Adaptive Local Differential Privacy for Heterogeneous Federated IoHT Intrusion Detection}
 \newcommand{\docType}{Project Proposal}
 \newcommand{\classInfo}{CSC429 Professor Fang}
 \newcommand{\authorNames}{\textbf{Jess Alencaster, McCay Rudick, Helen Huy}}
@@ -41,7 +42,7 @@
 
 \setlength\parindent{0pt}
 
-% --- Custom Section Formatting  ---
+% --- Custom Section Formatting ---
 \titleformat{\section}{\Large\bfseries\raggedright}{}{0em}{}[\titlerule]
 \titlespacing{\section}{0pt}{10pt}{5pt}
 \titleformat{\subsection}{\large\bfseries\raggedright}{}{0em}{}
@@ -55,7 +56,7 @@
     {\Large \textbf{\docType}} \\ \vspace{5pt}
     {\large \authorNames} \\ \vspace{5pt}
     {\large \classInfo}
-\end{center} 
+\end{center}
 \vspace{1em}
 \hrule
 \vspace{1.5em}
@@ -63,124 +64,120 @@
 % BEGIN PROPOSAL CONTENT
 
 \section{Background}
-Internet of Things (IoT) devices are increasingly deployed across industrial, consumer, and especially healthcare settings, where Internet of Healthcare Things (IoHT) devices, such as wearable monitors, smart infusion pumps, and connected diagnostic systems continuously generate and transmit sensitive network traffic data. Because these devices often operate in safety-critical environments while maintaining limited onboard security, they present an attractive target for a wide range of cyberattacks. Intrusion Detection Systems (IDS), therefore, play an important role in monitoring IoT and IoHT traffic to identify malicious behavior before it disrupts device operation or compromises patient data. In this setting, the intersection of both machine learning (ML) and deep learning (DL) based IDS have shown promise, given their ability to learn complex patterns from large volumes of network traffic data and distinguish benign activity from attacks more effectively than many rule-based approaches.
+Internet of Things (IoT) devices are increasingly deployed across industrial, consumer, and especially healthcare settings. Internet of Healthcare Things (IoHT) devices, such as wearable monitors and connected diagnostic systems, continuously generate and transmit sensitive network traffic data. Because IoHT devices operate in safety-critical environments, they present attractive targets for a wide range of cyberattacks. To detect such attacks, Intrusion Detection Systems (IDS) are used to monitor IoT and IoHT traffic and identify malicious behavior before it can disrupt device operation or compromise patient data. In this setting, machine learning (ML) and deep learning (DL)-based IDS have shown promise because they can learn complex patterns from large volumes of network traffic data and distinguish benign activity from attacks more effectively than many rule-based approaches.
 
-Traditional centralized IDS approaches send raw data to a central server, which raises serious privacy concerns for sensitive IoT environments. Federated Learning (FL) addresses this by allowing IoT devices to train local models on their own data and share only model updates with a central aggregation server, combining them into a global IDS model without ever accessing raw device data.
+Traditional centralized IDS approaches send raw data to a central server, which raises privacy concerns for sensitive IoHT environments. Federated Learning (FL) addresses this issue by allowing devices or gateways to train local models on their own data and share only model updates with a central aggregation server, combining them into a global IDS model without directly exposing raw traffic data.
 
-However, FL's privacy guarantee is incomplete. Model updates encode private data information relative to where they were computed from, leaving such FL systems vulnerable to membership inference attacks (MIAs) and data poisoning attacks. MIAs can achieve up to 92.1\% attack accuracy against FL models under white-box conditions, where malicious aggregators manipulate gradient updates to expose participants' private data \cite{nasr2019}. Data poisoning poses an additional vector threat, where malicious clients inject corrupted local updates into the federation, which cause the global model to silently misclassify the malicious traffic as benign \cite{nguyen2020}.
+However, FL systems remain vulnerable to membership inference attacks (MIAs), particularly because model updates can still encode private information about the local data from which they were computed \cite{nasr2019}. Under white-box conditions, an adversary such as an honest-but-curious aggregator may exploit local updates to infer whether specific data points were used during training. This is particularly concerning in healthcare environments, where network traces may reveal sensitive patient-associated device behavior.
 
-Differential Privacy (DP) has been proposed to address these vulnerabilities by injecting calibrated random noise into model updates before transmission. Formally, a mechanism $\mathcal{M}$ satisfies $(\epsilon, \delta)$-DP if for any two neighboring datasets $D$ and $D'$ differing by one sample:
-\begin{equation}
-Pr[\mathcal{M}(D) \in S] \le e^{\epsilon} \cdot Pr[\mathcal{M}(D') \in S] + \delta
-\end{equation}
-where $\epsilon$ controls the privacy-utility tradeoff. A lower $\epsilon$ means stronger privacy but more noise, which can degrade model accuracy.
+A common defense is to apply differential privacy (DP) by perturbing local model updates before they are uploaded. However, many privacy-preserving FL approaches rely on a fixed, uniform level of noise across all clients. In realistic federated IoHT settings, this assumption is often too simplistic because clients are inherently heterogeneous. Clients may differ in class balance, resource constraints, and data volume. Applying the same noise level across all devices may over-perturb some clients while under-protecting others, leading to an undesirable privacy--utility tradeoff.
+
+In this project, we investigate adaptive local differential privacy for heterogeneous federated IoHT intrusion detection. We study whether client-specific noise adaptation can better balance privacy protection and IDS utility in the presence of heterogeneous local data. More specifically, we examine whether adaptive privacy mechanisms can reduce membership leakage while simultaneously preserving detection performance in federated healthcare intrusion detection.
 
 \pagebreak
 
 \section{Current Work}
-Current work in privacy-preserving FL-based IDS has explored DP primarily as a uniform noise mechanism. SECIOHT-FL \cite{mosaiyebzadeh2025} is a privacy-preserving FL framework for IoHT devices employing deep neural networks (DNNs) and convolutional neural networks (CNNs), applying uniform DP via Opacus with fixed clipping normal and noise multipliers across all layers during local training, with an open-source implementation that provides an accessible baseline for reproduction and experimentation. 
+Current work in privacy-preserving FL-based IDS has largely explored differential privacy (DP) as a uniform noise mechanism. SECIOHT-FL \cite{mosaiyebzadeh2025} is a privacy-preserving FL framework for IoHT devices employing deep neural networks (DNNs) and convolutional neural networks (CNNs), applying DP through Opacus with fixed clipping norms and fixed noise multipliers during local training. Similarly, an FL-based IDS using a 1D CNN protected with DP alongside Diffie-Hellman key exchange and homomorphic encryption also applies uniform perturbation to local updates \cite{torre2025}.
 
-Similarly, an FL IDS using a 1D CNN protected with DP alongside Diffie-Hellman key exchange and homomorphic encryption likewise applies uniform noise across the entire CNN architecture and lacks open-source availability \cite{torre2025}.
+While these approaches improve privacy protection, they treat all clients as if they require the same level of perturbation. This assumption is mismatched with FL deployments in IoHT settings, where clients are inherently heterogeneous in their local data distributions, sample sizes, and resource constraints. Under such heterogeneity, applying the same fixed noise to every client can impose unnecessary utility loss on some clients while inadequately adapting to others.
 
-Despite their contributions, both approaches share a fundamental limitation. White-box privacy analysis has demonstrated that later CNN layers are significantly more vulnerable to MIAs than earlier layers, as they memorize specific training patterns rather than generalized features \cite{nasr2019}. Compounding this, uniform DP has been shown to fail against data poisoning and backdoor attacks in FL-based IoT IDS unless noise is increased to a level that severely degrades model accuracy \cite{nguyen2020}.
-
-Recent work has introduced layer-wise adaptive noise injection for FL systems \cite{li2026ladpfl}. This approach demonstrates that allocating noise non-uniformly across layers based on per-layer privacy estimation reduces unnecessary noise injection by over 46\% while improving global model utility. However, this approach quantifies per-layer privacy risk through KL divergence between local and global model distributions, a signal oriented primarily toward preventing image reconstruction attacks in general FL settings. This leaves a gap for specialized defenses against network-level IoT threats, namely MIAs and targeted data poisoning, where per-layer MIA vulnerability is a more directly relevant risk signal than distributional divergence from the global model.
+Recent work has begun to address this limitation through adaptive local differential privacy in federated learning. AdapLDP-FL \cite{yue2025adapldpfl} proposes client-specific adaptive noise scaling and a direction-correction mechanism to improve the privacy--utility tradeoff under a fixed privacy budget. However, its evaluation is limited to image-classification benchmarks such as MNIST, CIFAR-10, and Fashion-MNIST. It remains unclear whether adaptive client-specific noise is effective in federated IDS settings.
 
 \pagebreak
 
 \section{Motivation}
-Uniform DP does not account for heterogeneous per-layer privacy risk, which can lead to imposing unnecessary accuracy loss on lower-risk early layers while leaving higher-risk layers more vulnerable to membership inference leakage \cite{nasr2019}. This limitation motivates us to investigate whether a layer-specific privacy mechanism, informed by per-layer MIA vulnerability, can achieve a better privacy-utility tradeoff than uniform DP in FL-based IoT IDS. Building directly on the open-source SECIOHT-FL \cite{mosaiyebzadeh2025}, we further examine whether this non-uniform privacy allocation affects robustness under data poisoning attacks. This suggests that the limitation of uniform DP is not only the amount of noise injected, but also the inability to target protection where it is most needed within the model.
+Fixed, uniform differential privacy assumes that all federated clients require the same level of perturbation, even though real IoT and IoHT deployments are inherently heterogeneous in their local data distributions, sample sizes, and device conditions. In federated healthcare intrusion detection, this mismatch is especially important because clients may observe very different proportions of normal and malicious traffic, and the data are often highly imbalanced. As a result, applying the same noise to every client can introduce unnecessary utility loss for some clients while failing to adapt effectively to others. This limitation motivates us to investigate whether a client-specific adaptive privacy mechanism can achieve a better privacy--utility tradeoff than uniform DP in FL-based healthcare and IoT intrusion detection. Building on prior adaptive local differential privacy methods such as AdapLDP-FL \cite{yue2025adapldpfl}, we study whether adaptive client-level noise allocation remains effective in this setting, where performance must be evaluated not only by accuracy, but also by security-sensitive metrics such as recall and F1-score.
 
 \section{Contribution}
-This project proposes JHM-McDP, a layer-specific DP mechanism for FL-based IoT IDS that allocates the privacy budget $\epsilon$ non-uniformly across CNN layers according to each layer's measured MIA vulnerability. Building on top of the open-source SECIOHT-FL \cite{mosaiyebzadeh2025} framework as a reproducible baseline, the contributions of this project are as follows:
+This project proposes an adaptive client-specific differential privacy mechanism for federated healthcare and IoT intrusion detection, extending adaptive local differential privacy ideas from AdapLDP-FL \cite{yue2025adapldpfl} to heterogeneous federated IDS settings. Rather than allocating privacy protection across CNN layers, our project focuses on heterogeneous federated clients and investigates whether adaptive client-level noise can provide a better privacy--utility tradeoff than fixed, uniform DP. The contributions of this project are as follows:
 
 \begin{itemize}
-    \item We design and implement JHM-McDP, a layer-wise $\epsilon$ allocation strategy for FL-based IoT IDS. Motivated by Nasr et al. \cite{nasr2019} and validated empirically in our setting, JHM-McDP assigns layer-specific gradient clipping thresholds informed by per-layer MIA vulnerability, with a custom Gaussian noise scaling implementation per layer.
-    \item We evaluate the privacy-utility tradeoff of JHM-McDP against the uniform DP baseline of SECIOHT-FL \cite{mosaiyebzadeh2025} on the WUSTL-EHMS-2020 and ECU-IoHT datasets, measuring intrusion detection accuracy, precision, recall, F1-score, and privacy budget $\epsilon$ across varying noise levels.
-    \item We assess JHM-McDP's robustness against MIAs and data poisoning attacks, evaluating whether layer-specific noise allocation maintains or improves defensive performance compared to uniform DP on IoHT network traffic data.
-    \item We quantify the privacy gain achieved by JHM-McDP relative to its accuracy cost, providing a concrete characterization of the privacy-utility tradeoff under adaptive versus uniform DP in FL-based IoT IDS.
+    \item We design and implement a client-specific adaptive DP mechanism for FL-based healthcare and IoT intrusion detection. Building on AdapLDP-FL \cite{yue2025adapldpfl}, our method adjusts the amount of noise added to each client update according to client-level characteristics rather than applying the same fixed perturbation to all clients.
+    
+    \item We construct a heterogeneous federated learning setting for intrusion detection by partitioning healthcare and IoT security datasets into unequal, non-IID client populations. This allows us to evaluate adaptive local DP in a setting that more closely reflects real federated deployments than uniform client partitions.
+    
+    \item We evaluate the privacy--utility tradeoff of adaptive client-level DP against fixed uniform DP baselines on the WUSTL-EHMS-2020 and ECU-IoHT datasets, measuring intrusion-detection performance using accuracy, precision, recall, F1-score, and privacy budget $\epsilon$ across varying noise levels.
+    
+    \item We assess whether adaptive client-specific noise improves empirical privacy protection against membership inference attacks (MIAs) while preserving intrusion-detection utility, providing a concrete comparison between uniform and adaptive DP in federated healthcare and IoT IDS.
 \end{itemize}
 
 \pagebreak
-
 \section{Timeline}
 
 \vspace{0.5em}
-\renewcommand{\arraystretch}{1.4}
-\noindent
-\begin{tabularx}{\textwidth}{|
-    >{\raggedright\arraybackslash}p{0.20\textwidth}|
-    >{\raggedright\arraybackslash}p{0.25\textwidth}|
-    >{\raggedright\arraybackslash}X|}
+\renewcommand{\arraystretch}{1.25}
+
+\begin{longtable}{|
+    >{\raggedright\arraybackslash}p{0.18\textwidth}|
+    >{\raggedright\arraybackslash}p{0.23\textwidth}|
+    >{\raggedright\arraybackslash}p{0.50\textwidth}|}
 \hline
 \rowcolor{black}
 \textcolor{white}{\textbf{Date Range}} &
 \textcolor{white}{\textbf{Phase}} &
 \textcolor{white}{\textbf{Key Objectives \& Tasks}} \\
 \hline
+\endfirsthead
 
-\textbf{Apr 27 -- May 3} \newline \textit{(McCay's B-Day)} & 
-Project Initiation, Literature Review, \& Baseline Setup & 
-\vspace{-1em}
-\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=1pt]
-    \item Finalize project proposal.
-    \item Clone and configure the baseline repository.
-    \item Analyze baseline code: Understand the architecture and how DP is implemented using the PyTorch Opacus engine.
-    \item Review the data preprocessing pipeline for target datasets.
-\end{itemize} \vspace{-1em} \\
+\hline
+\rowcolor{black}
+\textcolor{white}{\textbf{Date Range}} &
+\textcolor{white}{\textbf{Phase}} &
+\textcolor{white}{\textbf{Key Objectives \& Tasks}} \\
+\hline
+\endhead
+
+\hline
+\endfoot
+
+\textbf{Apr 27 -- May 3} \newline \textit{(McCay's B-Day)} &
+Project Refocus, Literature Alignment, \& Baseline Planning &
+\textbullet\ Finalize the refocused project proposal around adaptive client-specific DP for heterogeneous FL-based healthcare and IoT intrusion detection.\par
+\textbullet\ Review AdapLDP-FL and related FL-based IDS literature to determine how adaptive client-specific noise can be transferred into a healthcare/IoT intrusion-detection setting.\par
+\textbullet\ Finalize dataset selection and review preprocessing pipelines for the WUSTL-EHMS-2020 and ECU-IoHT datasets.\par
+\textbullet\ Define the initial federated learning pipeline and experimental environment for heterogeneous client simulation. \\
 \hline
 
-\textbf{May 4 -- May 10} & 
-Baseline Evaluation \& Threat Simulation & 
-\vspace{-1em}
-\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=1pt]
-    \item \textbf{Run baseline:} Execute the unmodified SECIOHT-FL model using uniform noise and fixed clipping.
-    \item \textbf{MIA Simulation:} Subject the baseline to white-box MIA to demonstrate later layers leak more information.
-    \item \textbf{Poisoning Simulation:} Demonstrate that uniform DP fails to filter malicious backdoor traffic.
-    \item Document baseline metrics: Accuracy, F1-score, and privacy budget ($\epsilon$).
-\end{itemize} \vspace{-1em} \\
+\textbf{May 4 -- May 10} &
+Baseline Reproduction \& Heterogeneous Client Construction &
+\textbullet\ Implement or reproduce a fixed uniform-DP federated IDS baseline to establish a comparison point.\par
+\textbullet\ Construct simulated heterogeneous federated clients by partitioning datasets into unequal, non-IID client populations.\par
+\textbullet\ Design client splits that vary in data volume, class balance, and attack distribution to better reflect realistic FL heterogeneity.\par
+\textbullet\ Document baseline performance under these client partitions using accuracy, precision, recall, F1-score, and privacy budget ($\epsilon$). \\
 \hline
 
-\textbf{May 11 -- May 17} & 
-Algorithm Design \& Formulation & 
-\vspace{-1em}
-\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=1pt]
-    \item Develop the McDP model to calculate a layer-specific risk profile.
-    \item Model MIA leakage and poisoning vulnerability computationally.
-    \item Formulate the mathematical computation for layer-specific $\epsilon$ values.
-\end{itemize} \vspace{-1em} \\
+\textbf{May 11 -- May 17} &
+Adaptive DP Design \& Experimental Formulation &
+\textbullet\ Formulate the adaptive client-level noise mechanism by building on the noise-scaling idea from AdapLDP-FL.\par
+\textbullet\ Define how each client's noise level will be adjusted in the healthcare/IoT IDS setting under heterogeneous client conditions.\par
+\textbullet\ Finalize the comparison plan: fixed uniform DP, AdapLDP-FL-style adaptive DP baseline, and our final adaptive method.\par
+\textbullet\ Design the white-box membership inference attack (MIA) evaluation protocol and identify the final privacy--utility metrics to report. \\
 \hline
 
-\textbf{May 18 -- May 24} & 
-System Integration \& Implementation & 
-\vspace{-1em}
-\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=1pt]
-    \item Alter the SECIOHT-FL codebase to accept layer-specific clipping boundaries and Gaussian noise multipliers.
-    \item Integrate McDP into the training loop for dynamic noise allocation prior to gradient upload.
-    \item Debug to ensure federated aggregation remains unbroken on the server side.
-\end{itemize} \vspace{-1em} \\
+\textbf{May 18 -- May 24} &
+System Integration \& Implementation &
+\textbullet\ Integrate adaptive client-specific noise scaling into the federated IDS training loop.\par
+\textbullet\ Implement the heterogeneous client-partitioning pipeline so each client receives different local data characteristics.\par
+\textbullet\ Ensure DP noise is added locally on each client before upload and that federated aggregation remains correct.\par
+\textbullet\ Debug the end-to-end FL system and verify stable training across both uniform and adaptive DP settings. \\
 \hline
 
-\textbf{May 25 -- May 30} & 
-Testing, Evaluation, \& Comparison & 
-\vspace{-1em}
-\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=1pt]
-    \item Run the full McDP FL system on datasets over 100 epochs.
-    \item Attack McDP using the same MIA and Poisoning techniques applied to the baseline.
-    \item Evaluate and compare performance/privacy tradeoffs.
-\end{itemize} \vspace{-1em} \\
+\textbf{May 25 -- May 30} &
+Evaluation, MIA Testing, \& Comparison &
+\textbullet\ Run the full FL-based IDS experiments on WUSTL-EHMS-2020 and ECU-IoHT under the selected heterogeneous client setups.\par
+\textbullet\ Compare fixed uniform DP, AdapLDP-FL-style adaptive DP, and our final adaptive client-level method.\par
+\textbullet\ Perform white-box MIA evaluation on all methods to assess empirical privacy leakage.\par
+\textbullet\ Analyze privacy--utility tradeoffs using intrusion-detection metrics and MIA performance. \\
 \hline
 
-\textbf{May 31 -- Jun 2} & 
-Final Deliverables & 
-\vspace{-1em}
-\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=1pt]
-    \item Generate visuals (graphs, charts) for data presentation.
-    \item Finalize draft and project conclusions.
-    \item Prepare slide deck for the final report presentation.
-\end{itemize} \vspace{-1em} \\
+\textbf{May 31 -- Jun 2} &
+Final Analysis \& Deliverables &
+\textbullet\ Generate final tables, graphs, and visual comparisons for adaptive versus uniform DP under heterogeneous FL settings.\par
+\textbullet\ Finalize the report and conclusions, emphasizing the role of client heterogeneity in motivating adaptive local DP.\par
+\textbullet\ Prepare the slide deck and presentation materials for the final report. \\
 \hline
-\end{tabularx}
+
+\end{longtable}
 
 % --- References ---
 \newpage

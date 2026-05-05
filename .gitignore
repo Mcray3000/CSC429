@@ -217,5 +217,12 @@ __marimo__/
 *.bbl
 *.bcf
 *.blg
+
+
+
+# Our Work
+
 baseline/data/*
 baseline/log/*
+
+project/data/*

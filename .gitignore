@@ -218,3 +218,4 @@ __marimo__/
 *.bcf
 *.blg
 baseline/data/*
+baseline/log/*

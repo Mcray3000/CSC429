@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "anaconda-client>=1.14.1",
+    "kagglehub>=1.0.1",
     "matplotlib>=3.10.9",
     "opencv-python>=4.13.0.92",
     "regex>=2026.4.4",

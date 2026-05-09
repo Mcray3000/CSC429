@@ -13,6 +13,7 @@ dependencies = [
     "polars>=1.40.1",
     "pyarrow>=24.0.0",
     "regex>=2026.4.4",
+    "scikit-learn>=1.8.0",
     "seaborn>=0.13.2",
     "soupsieve>=2.8.3",
     "sqlalchemy>=2.0.49",

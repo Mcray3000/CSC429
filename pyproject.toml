@@ -3,7 +3,7 @@ name = "csc429"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = "==3.12.2"
 dependencies = [
     "anaconda-client>=1.14.1",
     "fastexcel>=0.20.2",

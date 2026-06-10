@@ -226,3 +226,5 @@ baseline/data/*
 baseline/log/*
 
 project/data/*
+
+.adaptive_dp_cache/

@@ -38,26 +38,28 @@ hhuy@calpoly.edu}
 \maketitle
 
 \begin{abstract}
-Privacy and utility remain as important concerns in federated intrusion
-detection for Internet-of-Healthcare-Things (IoHT) networks, especially when
-clients are heterogeneous and hold non-IID local data. Although federated
-learning (FL) can reduce raw data exposure, model updates by clients can still
-leak sensitive information. Differential privacy (DP) is a widely adopted
-solution to this case, but it can degrade performance if it is mismatched to
-client conditions. In this work, we study adaptive privacy mechanisms for
-federated IoHT intrusion detection under heterogeneous clients. We simulate
-non-IID client populations using Dirichlet-based partitioning on the ECU-IoHT
-and WUSTL-EHMS 2020 datasets. We then compare no-DP training, fixed-noise DP,
-smoothed adaptive noise scaling, and adaptive clipping. To quantify privacy
-leakage, we also implement a white-box membership inference attack and evaluate
-attack performance on held-out attack splits. We present experimental results
-that show strict no-identifier preprocessing reduces membership inference
-performance close to chance, while identifier-inclusive WUSTL serves as a strong
-leakage-positive control. On the utility side, ECU remains near ceiling across
-methods, whereas WUSTL is substantially more sensitive to privacy perturbations.
-Evaluations on WUSTL indicate that tuned adaptive clipping achieves the
-strongest average F1 and PR-AUC, although improvements over the best fixed-noise
-baseline remain modest.
+Privacy and utility remain important concerns in federated intrusion detection
+for Internet-of-Healthcare-Things (IoHT) networks, especially when clients are
+heterogeneous and hold non-IID local data. Although federated learning (FL)
+reduces raw data exposure, client model updates can still leak sensitive
+information. Differential privacy (DP) is a widely used defense, but its utility
+impact can vary substantially across datasets and client conditions. In this
+work, we study adaptive privacy mechanisms for federated IoHT intrusion
+detection under heterogeneous clients. We simulate non-IID client populations
+using Dirichlet-based partitioning on the ECU-IoHT and WUSTL-EHMS 2020 datasets,
+and compare no-DP training, fixed-noise DP, smoothed adaptive noise scaling, and
+adaptive clipping. To quantify privacy leakage, we also implement a white-box
+membership inference attack and evaluate attack performance on held-out splits.
+Our results show that strict no-identifier preprocessing reduces membership
+inference performance close to chance, while identifier-inclusive WUSTL serves
+as a strong leakage-positive control. On the utility side, ECU remains near
+ceiling across privacy mechanisms, limiting the room for adaptive methods to
+show benefit, whereas WUSTL is substantially more sensitive to privacy
+perturbations. Overall, we do not observe consistent or substantial utility
+gains from adaptive privacy mechanisms across datasets; instead, the results
+suggest that their effectiveness is highly dataset-dependent and may require
+more challenging benchmarks or better-calibrated settings to produce meaningful
+improvements.
 \end{abstract}
 
 \begin{IEEEkeywords}

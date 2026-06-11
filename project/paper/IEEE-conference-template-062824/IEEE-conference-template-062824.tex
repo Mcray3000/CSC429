@@ -9,7 +9,7 @@
 \usepackage{url}
 \usepackage{textcomp}
 \usepackage{xcolor}
-\usepackage{caption}
+\usepackage{grffile}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -156,7 +156,6 @@ IDS model, which is then redistributed to the clients.
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.63\textwidth]{Sys.pdf}
-    \captionsetup{justification=centering, singlelinecheck=false}
     \caption{System model for federated IoHT intrusion detection with heterogeneous clients. Raw data remain local to each IoHT environment, while privatized model updates are sent to the federated server for aggregation.}
     \label{fig:system_model}
 \end{figure*}
@@ -166,17 +165,14 @@ IDS model, which is then redistributed to the clients.
 Let \(\theta^t\) denote the global model parameters at round \(t\). The server
 broadcasts \(\theta^t\) to the participating clients. Each client trains locally
 and obtains updated parameters \(\theta_k^t\). The client update is
-
 \[
 \Delta_k^t = \theta_k^t - \theta^t.
 \]
 
 The server aggregates client updates using FedAvg:
-
 \[
 \theta^{t+1} = \theta^t + \sum_{k=1}^{K} w_k \widetilde{\Delta}_k^t,
 \]
-
 where \(w_k\) is the aggregation weight for client \(k\), and
 \(\widetilde{\Delta}_k^t\) is the update received by the server. In the no-DP
 setting, \(\widetilde{\Delta}_k^t=\Delta_k^t\). In DP-based settings, the update
@@ -185,15 +181,12 @@ is clipped and noised before upload.
 \subsection{Client-Side Privacy Mechanisms}
 
 For DP-based methods, each client update is first clipped:
-
 \[
 \bar{\Delta}_k^t =
 \Delta_k^t \cdot
 \min\left(1, \frac{C_t}{\left\lVert \Delta_k^t \right\rVert_2}\right),
 \]
-
 where \(C_t\) is the clipping threshold. Gaussian noise is then added:
-
 \[
 \widetilde{\Delta}_k^t =
 \bar{\Delta}_k^t + \mathcal{N}\left(0, \sigma_{k,t}^{2} C_t^{2} I\right).
@@ -202,11 +195,9 @@ where \(C_t\) is the clipping threshold. Gaussian noise is then added:
 We compare three DP variants. In fixed-noise DP, all clients use the same noise
 multiplier, \(\sigma_{k,t}=\sigma\). In smoothed adaptive noise scaling, the
 noise multiplier changes using a smoothed update-norm estimate:
-
 \[
 s_{k,t} = \lambda s_{k,t-1} + (1-\lambda)\left\lVert \Delta_k^t \right\rVert_2,
 \]
-
 \[
 \sigma_{k,t} =
 \operatorname{clip}\left(
@@ -218,7 +209,6 @@ s_{k,t} = \lambda s_{k,t-1} + (1-\lambda)\left\lVert \Delta_k^t \right\rVert_2,
 \sigma_{\max}
 \right).
 \]
-
 In adaptive clipping, the noise multiplier remains fixed while the clipping
 threshold is adjusted during training.
 
@@ -241,11 +231,9 @@ leakage when leaky features are present.
 Because both datasets are centralized, we simulate federated clients using
 label-based Dirichlet partitioning. For each class, samples are distributed
 across \(K\) clients according to
-
 \[
 p \sim \mathrm{Dirichlet}(\alpha).
 \]
-
 The concentration parameter \(\alpha\) controls the degree of non-IID behavior.
 Smaller values create stronger client heterogeneity. We use \(K=8\) clients and
 \(\alpha=0.3\) to create uneven client sizes and class balances, reflecting the
@@ -255,7 +243,6 @@ shows the resulting client class composition.
 \begin{figure}[t]
     \centering
     \includegraphics[width=\linewidth]{fig_client_split.pdf}
-    \captionsetup{justification=centering, singlelinecheck=false}
     \caption{Dirichlet-based federated client split for ECU-IoHT and WUSTL-EHMS 2020 using \(K=8\) clients and \(\alpha=0.3\). The split creates heterogeneous client sizes and class compositions.}
     \label{fig:client_split}
 \end{figure}
@@ -267,18 +254,46 @@ adaptive noise scaling, and adaptive clipping. All settings use the same client
 splits, model architecture, and FL pipeline so that differences are attributable
 to the privacy mechanism.
 
-We evaluate IDS utility using accuracy, precision, recall, F1-score, and
-ROC-AUC. Because IoHT intrusion-detection data are imbalanced, we emphasize
-precision, recall, F1-score, and ROC-AUC rather than accuracy alone. We evaluate
-privacy leakage using white-box membership inference ROC-AUC, where values near
-0.5 indicate chance-level attack performance.
+We evaluate IDS utility using accuracy, precision, recall, F1-score, ROC-AUC,
+and PR-AUC. Because IoHT intrusion-detection data are imbalanced, we emphasize
+F1-score, ROC-AUC, and PR-AUC rather than accuracy alone. We evaluate privacy
+leakage using white-box membership inference ROC-AUC, where values near 0.5
+indicate chance-level attack performance.
 
-\subsection{Utility and Privacy Findings}
+\subsection{Fixed-Noise Utility Sweep}
 
-Across the current experimental settings, ECU-IoHT remains near ceiling across
-privacy mechanisms. This limits the amount of measurable utility improvement
-adaptive mechanisms can provide. In contrast, WUSTL-EHMS 2020 is more sensitive
-to DP perturbations, making the privacy--utility tradeoff easier to observe.
+To understand how each dataset responds to increasing privacy noise, we perform
+a fixed-noise sweep under strict no-identifier preprocessing. This sweep varies
+the Gaussian noise multiplier and measures F1-score and PR-AUC.
+
+Fig.~\ref{fig:ecu_noise_sweep} shows that ECU-IoHT remains near the utility
+ceiling across the tested noise range. Both F1-score and PR-AUC remain high,
+indicating that the dataset is relatively separable under the current
+preprocessing and model configuration. Because performance is already high,
+ECU-IoHT provides limited room for adaptive privacy mechanisms to show utility
+gains.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{{ECU Strict_fixed_noise_sweep}.pdf}
+    \caption{Fixed-noise utility sweep for ECU-IoHT under strict no-identifier preprocessing. F1-score and PR-AUC remain high across the tested noise multipliers, suggesting that ECU-IoHT is comparatively easy in the current setting.}
+    \label{fig:ecu_noise_sweep}
+\end{figure}
+
+Fig.~\ref{fig:wustl_noise_sweep} shows a different pattern for WUSTL-EHMS 2020.
+Utility is lower overall and changes more substantially as the noise multiplier
+increases. This indicates that WUSTL-EHMS 2020 is more sensitive to privacy
+perturbation and therefore provides a stronger stress test for the
+privacy--utility tradeoff.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{{WUSTL Strict_fixed_noise_sweep}.pdf}
+    \caption{Fixed-noise utility sweep for WUSTL-EHMS 2020 under strict no-identifier preprocessing. F1-score and PR-AUC are lower and more sensitive to the noise multiplier, making WUSTL-EHMS 2020 a more informative stress test for privacy perturbation.}
+    \label{fig:wustl_noise_sweep}
+\end{figure}
+
+\subsection{Membership Inference Findings}
 
 The membership inference results show that preprocessing strongly affects
 measured privacy leakage. Under strict no-identifier preprocessing, attack
@@ -286,10 +301,24 @@ performance remains close to chance. Identifier-inclusive WUSTL produces a
 stronger attack signal, confirming that identifier-like features can inflate
 measured leakage.
 
-Overall, adaptive privacy mechanisms provide utility comparable to fixed-noise
-DP in the evaluated settings. These results suggest that adaptive mechanisms may
-require more challenging benchmarks, stronger update variation, or
-better-calibrated privacy parameters to show a clear advantage.
+This result is important for interpreting the DP experiments. When measured
+leakage is already low after preprocessing, DP mechanisms have limited room to
+further reduce empirical membership inference risk. Therefore, utility behavior
+becomes the main point of comparison between fixed and adaptive privacy
+mechanisms.
+
+\subsection{Fixed and Adaptive Privacy Comparison}
+
+Across the evaluated settings, adaptive privacy mechanisms provide utility
+comparable to fixed-noise DP. ECU-IoHT remains near ceiling across mechanisms,
+while WUSTL-EHMS 2020 is more sensitive to DP perturbations. The fixed-noise
+sweeps in Fig.~\ref{fig:ecu_noise_sweep} and Fig.~\ref{fig:wustl_noise_sweep}
+help explain this difference: ECU-IoHT tolerates the tested noise levels well,
+while WUSTL-EHMS 2020 shows a clearer privacy--utility tension.
+
+Overall, the results suggest that adaptive privacy mechanisms may require
+stronger update variation, more challenging datasets, or more carefully
+calibrated privacy parameters to show a clear advantage over fixed-noise DP.
 
 \section{Conclusion}
 

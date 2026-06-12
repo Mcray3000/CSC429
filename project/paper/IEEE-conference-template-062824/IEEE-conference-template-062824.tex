@@ -18,23 +18,31 @@
 
 \title{Adaptive Differential Privacy for Federated IoHT Intrusion Detection: A Privacy--Utility Study under Heterogeneous Clients}
 
-\author{ \IEEEauthorblockN{Jess Alencaster} \IEEEauthorblockA{ \textit{Computer
-Science and Software Engineering}\\
+\author{
+\IEEEauthorblockN{Jess Alencaster}
+\IEEEauthorblockA{
+\textit{Computer Science and}\\
+\textit{Software Engineering}\\
 \textit{California Polytechnic State University}\\
 San Luis Obispo, CA, United States\\
 jalencas@calpoly.edu}
 \and
-\IEEEauthorblockN{McCay Ruddick} \IEEEauthorblockA{ \textit{Computer Science and
-Software Engineering}\\
+\IEEEauthorblockN{McCay Ruddick}
+\IEEEauthorblockA{
+\textit{Computer Science and}\\
+\textit{Software Engineering}\\
 \textit{California Polytechnic State University}\\
 San Luis Obispo, CA, United States\\
 mruddick@calpoly.edu}
 \and
-\IEEEauthorblockN{Helen Huy} \IEEEauthorblockA{ \textit{Computer Science and
-Software Engineering}\\
+\IEEEauthorblockN{Helen Huy}
+\IEEEauthorblockA{
+\textit{Computer Science and}\\
+\textit{Software Engineering}\\
 \textit{California Polytechnic State University}\\
 San Luis Obispo, CA, United States\\
-hhuy@calpoly.edu} }
+hhuy@calpoly.edu}
+}
 
 \maketitle
 
@@ -51,16 +59,18 @@ federated IoHT intrusion detection. We simulate heterogeneous clients using
 Dirichlet-based partitioning on the ECU-IoHT and WUSTL-EHMS 2020 datasets, and
 compare no-DP training, fixed-noise DP, smoothed adaptive noise scaling, and
 adaptive clipping. We evaluate detection utility using precision, recall,
-F1-score, and ROC-AUC, and assess privacy leakage using a white-box membership
-inference attack.
+F1-score, ROC-AUC, and PR-AUC, and assess privacy leakage using a white-box
+membership inference attack.
 
 Our results show that strict no-identifier preprocessing reduces membership
-inference performance close to chance, while identifier-inclusive WUSTL serves
-as a leakage-positive control. In terms of utility, ECU-IoHT remains near
-ceiling across privacy mechanisms, while WUSTL-EHMS 2020 is more sensitive to
-privacy perturbations. Overall, adaptive mechanisms provide utility comparable
-to fixed-noise DP in our evaluated settings, and measured privacy leakage is
-strongly affected by preprocessing choices.
+inference performance close to chance across privacy mechanisms.
+Utility-preserving DP settings require very small noise multipliers,
+corresponding to weak approximate per-update privacy scales, while stronger
+target epsilon settings require much larger noise and cause utility collapse.
+Overall, adaptive mechanisms provide utility comparable to fixed-noise DP in our
+evaluated settings, suggesting that adaptive privacy has limited room to improve
+when empirical leakage is already low and stronger noise is not
+utility-tolerable.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -192,6 +202,16 @@ where \(C_t\) is the clipping threshold. Gaussian noise is then added:
 \bar{\Delta}_k^t + \mathcal{N}\left(0, \sigma_{k,t}^{2} C_t^{2} I\right).
 \]
 
+This follows the standard Gaussian mechanism: for \(\epsilon \in (0,1)\), if
+\(c^2 > 2\ln(1.25/\delta)\), adding Gaussian noise with standard deviation at
+least \(c\Delta_2(f)/\epsilon\) gives \((\epsilon,\delta)\)-DP. In our
+implementation, clipping bounds the update scale through \(C_t\), while the
+Gaussian noise is controlled by the multiplier \(\sigma_{k,t}\). Larger
+\(\sigma_{k,t}\) therefore corresponds to a smaller approximate \(\epsilon\),
+but also stronger perturbation of the client update. We use this relationship as
+a per-update privacy scale, not as a composed privacy accountant across FL
+rounds.
+
 We compare three DP variants. In fixed-noise DP, all clients use the same noise
 multiplier, \(\sigma_{k,t}=\sigma\). In smoothed adaptive noise scaling, the
 noise multiplier changes using a smoothed update-norm estimate:
@@ -217,14 +237,15 @@ threshold is adjusted during training.
 \subsection{Datasets and Preprocessing}
 
 We evaluate on ECU-IoHT and WUSTL-EHMS 2020. ECU-IoHT serves as a comparatively
-easier benchmark in our experiments, while WUSTL-EHMS 2020 provides a more
+separable benchmark in our experiments, while WUSTL-EHMS 2020 provides a more
 sensitive test of privacy perturbation and class imbalance.
 
 For the main evaluation, we apply strict no-identifier preprocessing by removing
 identifier-like fields such as IDs, MAC-like features, and other direct or
-quasi-identifiers. We also evaluate an identifier-inclusive WUSTL setting as a
-leakage-positive control to verify that the membership inference attack detects
-leakage when leaky features are present.
+quasi-identifiers. This is important because identifier-like features can create
+leakage unrelated to the federated privacy mechanism itself. We also evaluate an
+identifier-inclusive WUSTL setting as a leakage-positive control to verify that
+the membership inference attack detects leakage when leaky features are present.
 
 \subsection{Federated Client Partitioning}
 
@@ -269,43 +290,87 @@ the Gaussian noise multiplier and measures F1-score and PR-AUC.
 Fig.~\ref{fig:ecu_noise_sweep} shows that ECU-IoHT remains near the utility
 ceiling across the tested noise range. Both F1-score and PR-AUC remain high,
 indicating that the dataset is relatively separable under the current
-preprocessing and model configuration. Because performance is already high,
-ECU-IoHT provides limited room for adaptive privacy mechanisms to show utility
-gains.
+preprocessing and model configuration. This limits the room for any privacy
+mechanism, fixed or adaptive, to improve measured utility.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\linewidth]{{ECU Strict_fixed_noise_sweep}.pdf}
-    \caption{Fixed-noise utility sweep for ECU-IoHT under strict no-identifier preprocessing. F1-score and PR-AUC remain high across the tested noise multipliers, suggesting that ECU-IoHT is comparatively easy in the current setting.}
+    \caption{Fixed-noise utility sweep for ECU-IoHT under strict no-identifier preprocessing. F1-score and PR-AUC remain high across the tested noise multipliers, suggesting that ECU-IoHT is comparatively separable in the current setting.}
     \label{fig:ecu_noise_sweep}
 \end{figure}
 
 Fig.~\ref{fig:wustl_noise_sweep} shows a different pattern for WUSTL-EHMS 2020.
 Utility is lower overall and changes more substantially as the noise multiplier
 increases. This indicates that WUSTL-EHMS 2020 is more sensitive to privacy
-perturbation and therefore provides a stronger stress test for the
-privacy--utility tradeoff.
+perturbation and therefore exposes the utility cost of increasing DP noise more
+clearly.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\linewidth]{{WUSTL Strict_fixed_noise_sweep}.pdf}
-    \caption{Fixed-noise utility sweep for WUSTL-EHMS 2020 under strict no-identifier preprocessing. F1-score and PR-AUC are lower and more sensitive to the noise multiplier, making WUSTL-EHMS 2020 a more informative stress test for privacy perturbation.}
+    \caption{Fixed-noise utility sweep for WUSTL-EHMS 2020 under strict no-identifier preprocessing. F1-score and PR-AUC are lower and more sensitive to the noise multiplier, showing a clearer utility cost from privacy perturbation.}
     \label{fig:wustl_noise_sweep}
 \end{figure}
 
-\subsection{Membership Inference Findings}
+\subsection{Membership Inference Results}
 
-The membership inference results show that preprocessing strongly affects
-measured privacy leakage. Under strict no-identifier preprocessing, attack
-performance remains close to chance. Identifier-inclusive WUSTL produces a
-stronger attack signal, confirming that identifier-like features can inflate
-measured leakage.
+Fig.~\ref{fig:mia_auc} shows the white-box membership inference ROC-AUC under
+strict no-identifier preprocessing. For both ECU-IoHT and WUSTL-EHMS 2020,
+attack performance remains close to the chance line across no-DP, fixed-noise
+DP, smoothed adaptive noise scaling, and adaptive clipping. This indicates that,
+after identifier removal, there is little measurable membership leakage under
+the evaluated attack.
 
-This result is important for interpreting the DP experiments. When measured
-leakage is already low after preprocessing, DP mechanisms have limited room to
-further reduce empirical membership inference risk. Therefore, utility behavior
-becomes the main point of comparison between fixed and adaptive privacy
-mechanisms.
+This result is central to interpreting the DP experiments. Since no-DP training
+is already near chance under strict preprocessing, DP has limited room to
+further reduce empirical membership inference risk. Therefore, changes in the
+privacy mechanism are mainly reflected in utility behavior rather than a large
+change in measured MIA AUC.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{mia_auc_comparison-3.pdf}
+    \caption{White-box membership inference ROC-AUC under strict no-identifier preprocessing. Attack performance remains close to chance for both ECU-IoHT and WUSTL-EHMS 2020 across no-DP, fixed-noise DP, smoothed adaptive noise scaling, and adaptive clipping.}
+    \label{fig:mia_auc}
+\end{figure}
+
+\subsection{Approximate Privacy Scale}
+
+Table~\ref{tab:epsilon_sigma_summary} summarizes the approximate
+Gaussian-mechanism privacy scale used to interpret the tested noise multipliers.
+The utility-preserving settings use very small noise multipliers around \(\sigma
+\approx 0.010\), which correspond to very large approximate per-update
+\(\epsilon\) values. These settings preserve IDS utility but provide a weak
+formal privacy scale under the Gaussian mechanism estimate.
+
+We also tested whether more conventional target \(\epsilon\) values could be
+used by increasing the noise multiplier. Targeting \(\epsilon=2\)--8 required
+much larger noise multipliers, approximately \(0.43\)--\(1.65\), and these
+settings caused utility to collapse. At the same time, membership inference
+remained near chance because strict no-identifier preprocessing had already
+removed most measurable leakage. Thus, simply increasing privacy noise did not
+reveal a useful adaptive-DP regime: the stronger settings damaged utility, while
+the empirical MIA signal remained low.
+
+\begin{table}[t]
+\centering
+\caption{Noise multiplier and approximate Gaussian-mechanism privacy scale.
+Epsilon values are approximate per-update estimates at \(\delta=10^{-5}\) and
+are not composed across FL rounds.}
+\label{tab:epsilon_sigma_summary}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lcc}
+\hline
+\textbf{Method} & \textbf{Mean \(\sigma\)} & \textbf{Approx. \(\epsilon\)} \\
+\hline
+Fixed noise & 0.010 & 484.5 \\
+Smoothed sigma & 0.011 & 441--458 \\
+Adaptive clip & 0.010 & 484.5 \\
+Target \(\epsilon=2\)--8 & \(\approx 0.43\)--1.65 & 2--8 \\
+\hline
+\end{tabular}
+\end{table}
 
 \subsection{Fixed and Adaptive Privacy Comparison}
 
@@ -313,12 +378,18 @@ Across the evaluated settings, adaptive privacy mechanisms provide utility
 comparable to fixed-noise DP. ECU-IoHT remains near ceiling across mechanisms,
 while WUSTL-EHMS 2020 is more sensitive to DP perturbations. The fixed-noise
 sweeps in Fig.~\ref{fig:ecu_noise_sweep} and Fig.~\ref{fig:wustl_noise_sweep}
-help explain this difference: ECU-IoHT tolerates the tested noise levels well,
-while WUSTL-EHMS 2020 shows a clearer privacy--utility tension.
+show that increasing noise is not equally tolerable across datasets.
 
-Overall, the results suggest that adaptive privacy mechanisms may require
-stronger update variation, more challenging datasets, or more carefully
-calibrated privacy parameters to show a clear advantage over fixed-noise DP.
+The MIA results in Fig.~\ref{fig:mia_auc} explain why adaptive mechanisms do not
+show a large empirical privacy advantage in the current setting. After strict
+preprocessing, measured membership leakage is already near chance, so changing
+the privacy mechanism does not substantially change attack AUC. The epsilon
+sensitivity in Table~\ref{tab:epsilon_sigma_summary} further shows that
+increasing noise enough to target stronger privacy scales is not
+utility-tolerable. Together, these results identify a specific limitation:
+adaptive DP had little room to improve privacy on these cleaned datasets because
+empirical leakage was already low, while stronger perturbation destroyed
+utility.
 
 \section{Conclusion}
 
@@ -329,16 +400,20 @@ adaptive clipping on ECU-IoHT and WUSTL-EHMS 2020, and evaluated privacy leakage
 using a white-box membership inference attack.
 
 Our results show that strict no-identifier preprocessing reduces membership
-inference performance close to chance, while identifier-inclusive WUSTL serves
-as a leakage-positive control. In terms of utility, ECU-IoHT remains near
-ceiling, while WUSTL-EHMS 2020 is more sensitive to privacy noise. Adaptive
-mechanisms provide utility comparable to fixed-noise DP in our current settings,
-suggesting that their practical benefit depends on dataset difficulty, client
-heterogeneity, and privacy calibration.
+inference performance close to chance across all evaluated privacy mechanisms.
+In terms of utility, ECU-IoHT remains near ceiling, while WUSTL-EHMS 2020 is
+more sensitive to privacy noise. Utility-preserving DP settings require very
+small noise multipliers, while target \(\epsilon=2\)--8 settings require much
+larger noise and collapse utility. Therefore, adaptive mechanisms provide
+utility comparable to fixed-noise DP in this study not simply because the
+datasets are insufficiently challenging, but because the evaluated regime leaves
+little empirical membership leakage to reduce and little utility tolerance for
+stronger perturbation.
 
-Future work should evaluate drift-based adaptive clipping, broader
-privacy-parameter sweeps, and more challenging IoHT benchmarks with stronger
-client-specific update variation.
+Future work should focus on settings where adaptive behavior can be evaluated
+more directly, such as drift-based adaptive clipping, client-specific update
+diagnostics, and benchmarks or splits with measurable leakage after
+preprocessing but enough utility tolerance for meaningful DP noise.
 
 \section*{Acknowledgment}
 

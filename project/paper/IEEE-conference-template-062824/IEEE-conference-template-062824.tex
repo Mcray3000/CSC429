@@ -93,7 +93,7 @@ In this work, we evaluate fixed and adaptive client-side privacy mechanisms on
 ECU-IoHT and WUSTL-EHMS 2020. We then simulate heterogeneous clients using
 Dirichlet-based partitioning, measure IDS utility using F1-score, and PR-AUC.
 Finally, we evaluate and report empirical privacy leakage using a white-box
-membership inference attack all with our proposed methodology.
+membership inference attack.
 
 Our contributions are:
 \begin{itemize}
@@ -101,10 +101,12 @@ Our contributions are:
     heterogeneous, non-IID federated IoHT clients.
     \item We compare ECU-IoHT and WUSTL-EHMS 2020 using both IDS utility metrics
     and white-box membership inference.
-    \item We show that adaptive DP provides utility comparable to fixed-noise DP
-    in our setting because strict preprocessing leaves little measurable
-    membership leakage, while stronger noise calibrated for stronger privacy
-    collapses utility.
+    \item We show that, under the tested attack and parameterization, the
+    adaptive mechanisms did not reduce measured membership-inference leakage
+    relative to fixed-noise perturbation, because strict preprocessing already
+    leaves little measurable membership leakage, while noise large enough to
+    target stronger nominal privacy scales substantially degrades utility,
+    particularly on WUSTL-EHMS.
 \end{itemize}
 
 The remainder of this paper is structured as follows. Section II reviews related
@@ -123,11 +125,18 @@ training~\cite{mosaiyebzadeh2025secioht}.
 DP provides formal privacy protection by adding calibrated noise to a function
 output. The Gaussian mechanism gives approximate \((\epsilon,\delta)\)-DP, with
 noise determined by sensitivity, \(\epsilon\), and
-\(\delta\)~\cite{dwork2006ourdata,dwork2014algorithmic}. Local DP has been
-studied in federated IoT settings, where privacy budget and noise level directly
-affect utility~\cite{zhao2021ldpfl}. Adaptive DP methods try to improve this
-balance by changing noise or clipping based on client or training
-behavior~\cite{yue2025adapldpfl,he2024clustered,talaei2024adaptive}.
+\(\delta\)~\cite{dwork2006ourdata,dwork2014algorithmic}. In deep learning,
+gradient clipping and Gaussian noise addition during training have been used to
+provide record-level DP guarantees with a formal composition
+accountant~\cite{abadi2016deep}. Local DP has been studied in federated IoT
+settings, where privacy budget and noise level directly affect
+utility~\cite{zhao2021ldpfl}. Adaptive DP methods try to improve this balance by
+changing noise or clipping based on client or training
+behavior~\cite{yue2025adapldpfl,he2024clustered,talaei2024adaptive}, including
+adaptively setting the clipping norm itself from the observed distribution of
+update norms~\cite{andrew2021adaptive}. Secure aggregation provides a
+complementary defense by preventing the server from observing individual client
+updates before aggregation~\cite{bonawitz2017practical}.
 
 Membership inference attacks evaluate whether a trained model reveals that a
 specific record was included in training~\cite{shokri2017membership}. This
@@ -139,12 +148,12 @@ that can involve patient data.
 
 White-box membership inference provides a stronger evaluation setting than
 black-box attacks because the adversary can use internal model signals rather
-than only predicted labels or confidence scores. These signals may include
-losses, gradients, logits, or update-derived features, all of which can expose
-differences between records seen during training and records held out from
-training. For this reason, white-box MIA is useful for evaluating whether
-privacy mechanisms reduce observable training-record leakage in the actual FL
-pipeline.
+than only predicted labels or confidence scores~\cite{nasr2019comprehensive}.
+These signals may include losses, gradients, logits, or update-derived
+features, all of which can expose differences between records seen during
+training and records held out from training. For this reason, white-box MIA is
+useful for evaluating whether privacy mechanisms reduce observable
+training-record leakage in the actual FL pipeline.
 
 However, MIA results depend strongly on the dataset and preprocessing choices.
 Identifier-like features, duplicated patterns, or highly client-specific traffic
@@ -169,10 +178,10 @@ IDS unusable.
 This gap motivates our evaluation. Rather than assuming that adaptive DP will
 improve the privacy--utility tradeoff, we test whether adaptive noise scaling
 and adaptive clipping provide measurable benefit over fixed-noise DP under
-heterogeneous IoHT client splits. This allows us to separate three effects.
-First, whether the datasets contain measurable membership leakage. Secondly, DP
-noise reduces that leakage. And lastly, whether adaptive mechanisms preserve IDS
-utility better than fixed privacy settings.
+heterogeneous IoHT client splits. This allows us to separate three effects: first, whether the datasets contain
+measurable membership leakage; second, whether DP noise reduces that leakage;
+and third, whether adaptive mechanisms preserve IDS utility better than fixed
+privacy settings.
 
 \section{Methodology}
 
@@ -208,6 +217,16 @@ shared model behavior may still reveal information about individual samples. The
 attacker's goal is to distinguish member records from non-member records, and we
 measure success using membership inference ROC-AUC.
 
+This manuscript does not formally define an adjacency relation or a protected
+unit (e.g., a single record, a single client, or one client's participation
+across rounds) for the mechanisms in Section~III-D. The membership-inference
+evaluation above tests record-level membership, while the clipping and noise
+mechanisms in Section~III-D operate on an entire client update
+\(\Delta_k^t\). These two granularities are not necessarily aligned, and we do
+not claim a proven record-level or client-level \((\epsilon,\delta)\)-DP
+guarantee; the approximate \(\epsilon\) values reported in Section~III-D and
+Section~IV-G should be read as heuristic single-update noise-to-clipping scale
+comparisons rather than a certified end-to-end privacy guarantee.
 
 \subsection{Federated Learning Formulation}
 
@@ -257,6 +276,24 @@ FL privacy budget would additionally depend on client sampling, number of
 rounds, composition, and the accountant used; here we report only approximate
 per-update privacy scales.
 
+We note two further limitations of this privacy characterization. First, the
+bound above is classically stated for \(\epsilon \in
+(0,1)\)~\cite{dwork2006ourdata,dwork2014algorithmic}; the large approximate
+\(\epsilon\) values reported for our utility-preserving noise settings
+(Section~IV-G) fall well outside this range and should be read only as an
+informal noise-to-clipping scale comparison, not as a rigorous
+\((\epsilon,\delta)\)-DP certificate. An analytic Gaussian mechanism would be
+required to calibrate noise rigorously at these scales~\cite{balle2018analytic}.
+Second, the smoothed adaptive noise rule and the adaptive clipping rule
+described below select \(\sigma_{k,t}\) or \(C_t\) using statistics of the
+private, unperturbed update \(\Delta_k^t\). We do not provide a privacy proof
+for this data-dependent parameter selection; standard Gaussian-mechanism
+accounting assumes the noise scale is fixed independently of the private input,
+and does not automatically extend to a mechanism whose variance or clipping
+threshold is itself a function of that input. Accordingly, we describe these
+two mechanisms as adaptive Gaussian perturbation and adaptive clipping
+heuristics rather than as mechanisms with a proven end-to-end DP guarantee.
+
 We compare three DP variants. In fixed-noise DP, all clients use the same
 \(\sigma_{k,t}=\sigma\). In smoothed adaptive noise scaling,
 \[
@@ -274,8 +311,10 @@ s_{k,t} = \lambda s_{k,t-1} + (1-\lambda)\left\lVert \Delta_k^t \right\rVert_2,
 \right).
 \]
 In adaptive clipping, \(\sigma\) remains fixed while \(C_t\) changes during
-training.
-
+training; adapting the clipping norm to the observed distribution of update
+norms is a related idea explored in prior DP-FL
+work~\cite{andrew2021adaptive}. Table~\ref{tab:method_summary} summarizes these
+three mechanisms alongside the no-DP baseline.
 
 \begin{table*}[!t]
 \centering
@@ -345,9 +384,13 @@ p \sim \mathrm{Dirichlet}(\alpha).
 Smaller \(\alpha\) values create more uneven client label distributions. This
 matches common non-IID FL evaluation practice; the FedDC supplemental uses
 \(\alpha=0.3\) and \(\alpha=0.6\), with \(0.3\) representing the stronger
-non-IID setting~\cite{gao2022feddc_supp}. We use \(K=8\) clients and
+non-IID setting~\cite{gao2022feddc,gao2022feddc_supp}. We use \(K=8\) clients and
 \(\alpha=0.3\) to create heterogeneous client sizes and class balances.
-Fig.~\ref{fig:client_split} shows the resulting split.
+Fig.~\ref{fig:client_split} shows the resulting split. We note that this split
+creates label-distribution heterogeneity across clients; it does not by itself
+model device-type or feature-distribution heterogeneity (e.g., differences
+between glucose-monitoring, blood-pressure, and other IoHT device types shown
+in Fig.~\ref{fig:system_model}), which we leave to future work.
 
 \begin{figure}[!t]
     \centering
@@ -359,12 +402,13 @@ Fig.~\ref{fig:client_split} shows the resulting split.
 
 \subsection{Experimental Parameters}
 
-Table~\ref{tab:exp_params} lists the main values needed to interpret the
-privacy--utility experiments. The most important privacy variables are the noise
-multiplier \(\sigma\), clipping norm \(C\), sensitivity scale, target
-\(\epsilon\), \(\delta\), and the number of FL rounds used for composition. In
-this paper, \(\epsilon\) is reported as an approximate per-update scale rather
-than a composed training-level budget.
+Table~\ref{tab:exp_params} lists the main privacy-related values needed to
+interpret the privacy--utility experiments, including the noise multiplier
+\(\sigma\), clipping norm \(C\), sensitivity scale, and target \(\epsilon\),
+\(\delta\). We report \(\epsilon\) only as an approximate per-update scale
+(Section~III-D); a composed training-level budget would additionally require
+the number of FL rounds, the client sampling rate, and a formal accountant,
+which are not computed in this version of the manuscript.
 
 \begin{table}[!t]
 \centering
@@ -396,9 +440,10 @@ adaptive clipping. All conditions use the same client splits and FL pipeline so
 that differences are attributable to the privacy mechanism.
 
 We evaluate IDS utility using accuracy, precision, recall, F1-score, and PR-AUC.
-Because the datasets are imbalanced, we emphasize F1-score, ROC-AUC, and PR-AUC.
-We evaluate privacy leakage using white-box membership inference ROC-AUC, where
-0.5 indicates chance-level attack performance.
+Because the datasets are imbalanced, we emphasize F1-score and PR-AUC as our
+utility metrics. We evaluate privacy leakage separately using white-box
+membership inference ROC-AUC, where 0.5 indicates chance-level attack
+performance.
 
 \subsection{Privacy Evaluation and Budget Sensitivity}
 
@@ -461,6 +506,12 @@ This is the key privacy result: after identifier removal, no-DP training already
 has little measurable membership leakage under our attack. Therefore, DP and
 adaptive DP have little empirical MIA signal left to reduce.
 
+We report attack ROC-AUC only. This aggregate metric can understate leakage
+that is concentrated in a small subset of records; true-positive rate at low
+false-positive rate~\cite{carlini2022membership} or a broader empirical
+evaluation protocol~\cite{jayaraman2019evaluating} would provide a stricter,
+complementary audit of the near-chance result reported here.
+
 \begin{figure}[!t]
     \centering
     \includegraphics[width=\linewidth]{mia_auc_comparison-3.pdf}
@@ -470,27 +521,45 @@ adaptive DP have little empirical MIA signal left to reduce.
 
 \FloatBarrier
 
-\subsection{Approximate Privacy Scale}
+\subsection{Heuristic Privacy Scale Comparison}
 
 Table~\ref{tab:epsilon_sigma_summary} summarizes the approximate relationship
 between the tested noise multipliers and per-update Gaussian-mechanism privacy
-scale. With \(C=1.0\) and \(\delta=10^{-5}\), the utility-preserving settings
-use very small noise multipliers around \(\sigma \approx 0.010\). These values
-preserve IDS performance but correspond to very large approximate \(\epsilon\),
-meaning weak formal privacy scale.
+scale. As discussed in Section~III-D, this scale is a heuristic comparison
+rather than a certified \((\epsilon,\delta)\)-DP guarantee: the underlying bound
+is classically stated for \(\epsilon \in (0,1)\), does not account for
+composition across FL rounds or client sampling, and does not account for the
+data-dependent parameter selection used by the adaptive mechanisms. With
+\(C=1.0\) and \(\delta=10^{-5}\), the utility-preserving settings use very small
+noise multipliers around \(\sigma \approx 0.010\). These values preserve IDS
+performance but correspond to very large approximate \(\epsilon\) on this scale,
+meaning weak formal privacy.
 
-Targeting more conventional \(\epsilon=2\)--8 required much larger noise
-multipliers, approximately \(0.43\)--\(1.65\). These values match the high-noise
-range where WUSTL utility degrades in Fig.~\ref{fig:wustl_noise_sweep}. Thus,
-the experiment reveal the tradeoff that the noise needed for stronger
-approximate privacy is not utility-tolerable in this setting, while lower noise
-preserves utility but gives weak formal privacy scale.
+Targeting more conventional \(\epsilon=2\)--8 on this same scale required much
+larger noise multipliers, approximately \(0.43\)--\(1.65\). These values are in
+the high-noise range where WUSTL utility degrades in
+Fig.~\ref{fig:wustl_noise_sweep}. Thus, the experiment reveals the tradeoff that
+the noise needed for a stronger nominal privacy scale is not utility-tolerable
+in this setting, while lower noise preserves utility but gives a weak privacy
+scale.
+
+We also note that the realized adaptive noise multiplier changed only
+marginally relative to the fixed baseline: Table~\ref{tab:epsilon_sigma_summary}
+reports a mean \(\sigma \approx 0.011\) for smoothed adaptive noise versus
+\(\sigma = 0.010\) for fixed noise, and Table~\ref{tab:exp_params} caps the
+adaptive multiplier at \(\sigma_{\max}=0.10\), which remains below the noise
+multipliers associated with the target \(\epsilon=2\)--8 scale above. The tested
+adaptive rule therefore explored a narrow, low-noise operating region rather
+than the full range spanned by the fixed-noise sweep; this experiment should be
+read as evaluating adaptation near a low-noise baseline rather than adaptation
+across the complete privacy--utility range.
 
 \begin{table}[!t]
 \centering
-\caption{Noise multiplier and approximate Gaussian-mechanism privacy scale.
-Epsilon values are approximate per-update estimates at \(\delta=10^{-5}\) and
-are not composed across FL rounds.}
+\caption{Noise multiplier and heuristic single-update noise-to-clipping scale
+comparison, computed from the classical Gaussian-mechanism bound in
+Section~III-D at \(\delta=10^{-5}\). Values are not composed across FL rounds
+and are not a certified \((\epsilon,\delta)\)-DP guarantee (Section~III-D).}
 \label{tab:epsilon_sigma_summary}
 \renewcommand{\arraystretch}{1.15}
 \begin{tabular}{lcc}
@@ -507,32 +576,57 @@ Target \(\epsilon=2\)--8 & \(\approx 0.43\)--1.65 & 2--8 \\
 
 \subsection{Interpretation}
 
-Adaptive DP did not show a clear advantage because the evaluated datasets leave
-little room for it to help. First, strict preprocessing removed most measurable
+The tested adaptive mechanisms did not show a clear advantage over fixed-noise
+perturbation under our attack and parameterization, because the evaluated
+datasets and the realized adaptive noise range (Section~IV-G) leave little room
+for adaptation to help. First, strict preprocessing removed most measurable
 membership leakage, so MIA AUC stayed near chance even without DP. Second, the
 noise multipliers that preserved utility produced weak approximate privacy
-scales. Third, increasing noise to reach \(\epsilon=2\)--8 moved into the range
-where WUSTL utility collapsed entirely.
+scales. Third, increasing noise toward the \(\epsilon=2\)--8 scale moved into
+the range where WUSTL utility degraded substantially, while ECU-IoHT remained
+near its utility ceiling across the same range
+(Fig.~\ref{fig:ecu_noise_sweep}).
 
 This means the result is not simply that adaptive DP failed or that the datasets
 were ``too easy.'' Rather, these datasets and preprocessing choices created a
 regime where privacy leakage was already empirically low, but stronger
-formal-noise settings were too damaging for IDS utility. Under these conditions,
-adaptive mechanisms can match fixed DP but have limited opportunity to improve
-the privacy--utility tradeoff.
+formal-noise settings were too damaging for WUSTL-EHMS utility. Under these
+conditions, the tested adaptive mechanisms can match fixed-noise perturbation
+but have limited opportunity to improve the privacy--utility tradeoff.
+
+These results do not establish that adaptive privacy mechanisms are generally
+ineffective for federated IoHT intrusion detection. They instead identify a
+specific combination of preprocessing, attack, and adaptation range under which
+an evaluation of adaptive DP is uninformative: little leakage remained for
+adaptive noise to reduce, and the tested adaptation rule (Section~IV-G) did not
+explore a privacy-relevant noise range.
 
 \section{Conclusion}
 
 This work evaluated fixed and adaptive client-side DP for federated IoHT
-intrusion detection under heterogeneous non-IID clients. We found that adaptive
-DP provided utility comparable to fixed-noise DP, but did not produce a clear
-privacy or utility advantage in the evaluated regime.
+intrusion detection under heterogeneous non-IID clients. Under the tested
+attack, preprocessing, and parameterization, the adaptive mechanisms did not
+reduce measured membership-inference leakage relative to fixed-noise
+perturbation, and did not produce a clear privacy or utility advantage in the
+evaluated regime.
 
 The main limitation of this study is that strict no-identifier preprocessing
 reduced MIA AUC close to chance, leaving little measurable membership leakage
 for DP to reduce. In addition, the noise levels that preserved utility were too
 small to provide strong approximate privacy, while targeting \(\epsilon=2\)--8
-required much larger noise and caused sharp utility degradation.
+required much larger noise and caused substantial utility degradation on
+WUSTL-EHMS.
+
+This study has additional limitations. We do not provide a composed,
+training-level \((\epsilon,\delta)\)-DP guarantee across FL rounds, and the
+smoothed adaptive noise and adaptive clipping rules select their parameters
+from private, unperturbed update statistics without a corresponding privacy
+proof for that selection step; the reported approximate \(\epsilon\) values
+should therefore be read as heuristic scale comparisons rather than certified
+guarantees (Section~III-D). We additionally do not report variability across
+multiple training seeds or independently sampled Dirichlet partitions, so small
+differences between mechanisms should not be interpreted as statistically
+significant.
 
 Future work should focus on drift-based adaptive clipping, client-specific
 update diagnostics, and settings where privacy improvement can be measured
@@ -552,6 +646,7 @@ The membership inference attack is used only to evaluate privacy leakage.
 The authors thank the Computer Science and Software Engineering Department at
 California Polytechnic State University for supporting this work.
 
+\IEEEtriggeratref{17}
 \begin{thebibliography}{00}
 
 \bibitem{mcmahan2017communication}
@@ -626,6 +721,42 @@ IEEE/CVF Conference on Computer Vision and Pattern Recognition}, 2022, pp.
 L. Gao, H. Fu, L. Li, Y. Chen, M. Xu, and C.-Z. Xu, ``Supplementary for `FedDC:
 Federated Learning with Non-IID Data via Local Drift Decoupling and
 Correction','' Supplementary material for CVPR 2022, 2022.
+
+\bibitem{abadi2016deep}
+M. Abadi, A. Chu, I. Goodfellow, H. B. McMahan, I. Mironov, K. Talwar, and L.
+Zhang, ``Deep learning with differential privacy,'' in \textit{Proc. ACM SIGSAC
+Conference on Computer and Communications Security (CCS)}, 2016, pp. 308--318.
+
+\bibitem{andrew2021adaptive}
+G. Andrew, O. Thakkar, H. B. McMahan, and S. Ramaswamy, ``Differentially private
+learning with adaptive clipping,'' in \textit{Advances in Neural Information
+Processing Systems (NeurIPS)}, vol. 34, 2021, pp. 17455--17466.
+
+\bibitem{balle2018analytic}
+B. Balle and Y.-X. Wang, ``Improving the Gaussian mechanism for differential
+privacy: Analytical calibration and optimal denoising,'' in \textit{Proc.
+International Conference on Machine Learning (ICML)}, 2018, pp. 394--403.
+
+\bibitem{nasr2019comprehensive}
+M. Nasr, R. Shokri, and A. Houmansadr, ``Comprehensive privacy analysis of deep
+learning: Passive and active white-box inference attacks against centralized
+and federated learning,'' in \textit{Proc. IEEE Symposium on Security and
+Privacy}, 2019, pp. 739--753.
+
+\bibitem{carlini2022membership}
+N. Carlini, S. Chien, M. Nasr, S. Song, A. Terzis, and F. Tram\`er, ``Membership
+inference attacks from first principles,'' in \textit{Proc. IEEE Symposium on
+Security and Privacy}, 2022, pp. 1897--1914.
+
+\bibitem{jayaraman2019evaluating}
+B. Jayaraman and D. Evans, ``Evaluating differentially private machine learning
+in practice,'' in \textit{Proc. USENIX Security Symposium}, 2019, pp. 1895--1912.
+
+\bibitem{bonawitz2017practical}
+K. Bonawitz, V. Ivanov, B. Kreuter, A. Marcedone, H. B. McMahan, S. Patel, D.
+Ramage, A. Segal, and K. Seth, ``Practical secure aggregation for
+privacy-preserving machine learning,'' in \textit{Proc. ACM SIGSAC Conference on
+Computer and Communications Security (CCS)}, 2017, pp. 1175--1191.
 
 \end{thebibliography}
 
